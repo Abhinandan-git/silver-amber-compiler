@@ -4,29 +4,54 @@
 #include <ctype.h> // For string methods
 
 // Enumerating all the keywords
-typedef enum {
+typedef enum
+{
 	INTEGER,
 	FLOATING,
 	CHARACTER,
 	STRING,
 	FUNCTION,
 	RETURN,
-	EXIT
+	EXIT,
+	UNKNOWN_KEYWORD
 } TYPE_KEYWORD;
 
-typedef enum {
+typedef enum
+{
 	INTEGER_LITERAL
 } TYPE_LITERAL;
 
+typedef enum
+{
+	COMMA,
+	SEMICOLON,
+	COLON,
+	LEFT_PAREN,
+	RIGHT_PAREN,
+	LEFT_BRACE,
+	RIGHT_BRACE,
+	LEFT_BRACKET,
+	RIGHT_BRACKET,
+	WHITESPACE,
+	UNKNOWN
+} TYPE_SEPARATOR;
+
 // Generating structure for the keywords
-typedef struct {
+typedef struct
+{
 	TYPE_KEYWORD keyword;
 } TOKEN_KEYWORD;
 
-typedef struct {
+typedef struct
+{
 	TYPE_LITERAL literal;
 	int value;
 } TOKEN_LITERAL;
+
+typedef struct
+{
+	TYPE_SEPARATOR separator;
+} TOKEN_SEPARATOR;
 
 // Function prototypes
 void lexer(FILE *);
@@ -34,16 +59,19 @@ void lexer(FILE *);
 // Helper functions to get tokens
 TOKEN_KEYWORD *generate_keyword(char, FILE *);
 TOKEN_LITERAL *generate_number(char, FILE *);
+TOKEN_LITERAL *generate_seperator(char, FILE *);
 
-int main() {
+int main()
+{
 	// Open the source file in read mode
 	FILE *file;
 	file = fopen("code.silv", "r");
 
 	// If the file reading fails
-	if (file == NULL) {
+	if (file == NULL)
+	{
 		printf("Reading file failed.");
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	// Call the lexer
@@ -55,114 +83,190 @@ int main() {
 	return 0;
 }
 
-void lexer(FILE *file)  {
+void lexer(FILE *file)
+{
 	// Current character read from the source file
 	char current;
-	
+
 	// Read through the entire source file
-	do {
+	do
+	{
 		current = fgetc(file);
 
-		if (isdigit(current)) { // Literal starting found
+		if (isdigit(current))
+		{ // Literal starting found
 			TOKEN_LITERAL *token = generate_number(current, file);
-
-			printf("NUMBER FOUND: %d\n", token->value);
-		} else if (isalpha(current)) { // Keyword starting found
+		}
+		else if (isalpha(current))
+		{ // Keyword starting found
 			TOKEN_KEYWORD *token = generate_keyword(current, file);
-			
-			// Identify the token type
-			switch (token->keyword) {
-				case INTEGER:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case FLOATING:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case CHARACTER:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case STRING:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case FUNCTION:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case RETURN:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-				case EXIT:
-					printf("TOKEN FOUND: %d\n", token->keyword);
-					break;
-			}
 		}
 	} while (current != EOF);
 
 	return;
 }
 
-TOKEN_KEYWORD *generate_keyword(char current, FILE *file) {
+TOKEN_KEYWORD *generate_keyword(char current, FILE *file)
+{
 	// Creating a keyword token
 	TOKEN_KEYWORD *token = malloc(sizeof(TOKEN_KEYWORD));
-	
+
+	// If allocation fails
+	if (token == NULL)
+	{
+		printf("Memory allocation failed.");
+		exit(EXIT_FAILURE);
+	}
+
 	// Creating string buffer to store the keyword
-	char buffer[10] = {};
+	char buffer[32] = {0};
 	int buffer_index = 0;
 
-	do {
+	do
+	{
 		buffer[buffer_index] = current;
 		buffer_index++;
-
-		printf("CHARACTER FOUND: %c\n", current);
 
 		// Get the latest character
 		current = fgetc(file);
 	} while (current != EOF && isalpha(current));
 
-	if (!strcmp(buffer, "integer")) {
+	// Terminating the buffer after reading is done
+	buffer[buffer_index] = '\0';
+
+	if (!strcmp(buffer, "integer"))
+	{
 		token->keyword = INTEGER;
-	} else if (!strcmp(buffer, "floating")) {
+	}
+	else if (!strcmp(buffer, "float"))
+	{
 		token->keyword = FLOATING;
-	} else if (!strcmp(buffer, "character")) {
+	}
+	else if (!strcmp(buffer, "character"))
+	{
 		token->keyword = CHARACTER;
-	} else if (!strcmp(buffer, "string")) {
+	}
+	else if (!strcmp(buffer, "string"))
+	{
 		token->keyword = STRING;
-	} else if (!strcmp(buffer, "function")) {
+	}
+	else if (!strcmp(buffer, "function"))
+	{
 		token->keyword = FUNCTION;
-	} else if (!strcmp(buffer, "return")) {
+	}
+	else if (!strcmp(buffer, "return"))
+	{
 		token->keyword = RETURN;
-	} else if (!strcmp(buffer, "exit")) {
+	}
+	else if (!strcmp(buffer, "exit"))
+	{
 		token->keyword = EXIT;
 	}
+	else
+	{
+		token->keyword = UNKNOWN_KEYWORD;
+	}
 
-	fseek(file, -1, 1);
+	fseek(file, -1, SEEK_CUR);
 	return token;
 }
 
-TOKEN_LITERAL *generate_number(char current, FILE *file) {
-	// Creating a literal token
+TOKEN_LITERAL *generate_number(char current, FILE *file)
+{
+	// Allocate memory for token
 	TOKEN_LITERAL *token = malloc(sizeof(TOKEN_LITERAL));
-
-	int buffer[9] = {};
-	int buffer_index = 0;
-	int number = 0;
-
-	// Store the characters recieved into a buffer
-	do {
-		buffer[buffer_index] = (current - '0');
-		buffer_index++;
-		
-		current = fgetc(file);
-	} while (current != EOF && isdigit(current));
-	
-	// Convert array to number
-	for (int idx = 0; idx < buffer_index; idx++) {
-		number = (number * 10) + buffer[idx];
+	if (!token)
+	{
+		fprintf(stderr, "Memory allocation failed!\n");
+		exit(EXIT_FAILURE);
 	}
 
-	// Assign the token values
-	token->literal = INTEGER_LITERAL;
-	token->value = number;
+	char buffer[32] = {0};
+	int buffer_index = 0;
 
-	fseek(file, -1, 1);
+	// Store digits in buffer
+	do
+	{
+		// Prevent buffer overflow
+		if (buffer_index < (sizeof(buffer) - 1))
+		{
+			buffer[buffer_index++] = current;
+		}
+		else
+		{
+			fprintf(stderr, "Error: Number too long!\n");
+			free(token);
+			return NULL;
+		}
+		current = fgetc(file);
+	} while (current != EOF && isdigit(current));
+
+	// Terminating the buffer after reading is done
+	buffer[buffer_index] = '\0';
+
+	// Convert buffer to integer
+	token->value = atoi(buffer);
+	token->literal = INTEGER_LITERAL;
+
+	// If needed, move back one character
+	if (current != EOF)
+	{
+		fseek(file, -1, SEEK_CUR);
+	}
+
+	return token;
+}
+
+TOKEN_SEPARATOR *generate_separator(char current, FILE *file)
+{
+	// Allocate memory for token
+	TOKEN_SEPARATOR *token = malloc(sizeof(TOKEN_SEPARATOR));
+	if (!token)
+	{
+		fprintf(stderr, "Memory allocation failed!\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Identify the separator type
+	switch (current)
+	{
+	case ',':
+		token->separator = COMMA;
+		break;
+	case ';':
+		token->separator = SEMICOLON;
+		break;
+	case ':':
+		token->separator = COLON;
+		break;
+	case '(':
+		token->separator = LEFT_PAREN;
+		break;
+	case ')':
+		token->separator = RIGHT_PAREN;
+		break;
+	case '{':
+		token->separator = LEFT_BRACE;
+		break;
+	case '}':
+		token->separator = RIGHT_BRACE;
+		break;
+	case '[':
+		token->separator = LEFT_BRACKET;
+		break;
+	case ']':
+		token->separator = RIGHT_BRACKET;
+		break;
+	case ' ':
+	case '\t':
+	case '\n':
+		token->separator = WHITESPACE;
+		break;
+	default:
+		token->separator = UNKNOWN;
+		fprintf(stderr, "Warning: Unknown separator '%c'\n", current);
+		break;
+	}
+
 	return token;
 }
