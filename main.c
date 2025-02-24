@@ -1,7 +1,7 @@
 #include <stdio.h> // Standard I/O
 #include <stdlib.h>
-#include <string.h> // For string methods
-#include <ctype.h>
+#include <string.h>
+#include <ctype.h> // For string methods
 
 // Enumerating all the keywords
 typedef enum {
@@ -11,19 +11,29 @@ typedef enum {
 	STRING,
 	FUNCTION,
 	RETURN,
-	EXIT,
+	EXIT
 } TYPE_KEYWORD;
+
+typedef enum {
+	INTEGER_LITERAL
+} TYPE_LITERAL;
 
 // Generating structure for the keywords
 typedef struct {
 	TYPE_KEYWORD keyword;
 } TOKEN_KEYWORD;
 
-// Functions prototypes
+typedef struct {
+	TYPE_LITERAL literal;
+	int value;
+} TOKEN_LITERAL;
+
+// Function prototypes
 void lexer(FILE *);
 
 // Helper functions to get tokens
 TOKEN_KEYWORD *generate_keyword(char, FILE *);
+TOKEN_LITERAL *generate_number(char, FILE *);
 
 int main() {
 	// Open the source file in read mode
@@ -53,10 +63,36 @@ void lexer(FILE *file)  {
 	do {
 		current = fgetc(file);
 
-		if (isalpha(current)) {
+		if (isdigit(current)) { // Literal starting found
+			TOKEN_LITERAL *token = generate_number(current, file);
+
+			printf("NUMBER FOUND: %d\n", token->value);
+		} else if (isalpha(current)) { // Keyword starting found
 			TOKEN_KEYWORD *token = generate_keyword(current, file);
-			if (token->keyword == EXIT) {
-				printf("TOKEN FOUND: EXIT\n");
+			
+			// Identify the token type
+			switch (token->keyword) {
+				case INTEGER:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case FLOATING:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case CHARACTER:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case STRING:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case FUNCTION:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case RETURN:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
+				case EXIT:
+					printf("TOKEN FOUND: %d\n", token->keyword);
+					break;
 			}
 		}
 	} while (current != EOF);
@@ -82,9 +118,51 @@ TOKEN_KEYWORD *generate_keyword(char current, FILE *file) {
 		current = fgetc(file);
 	} while (current != EOF && isalpha(current));
 
-	if (!strcmp(buffer, "exit")) {
+	if (!strcmp(buffer, "integer")) {
+		token->keyword = INTEGER;
+	} else if (!strcmp(buffer, "floating")) {
+		token->keyword = FLOATING;
+	} else if (!strcmp(buffer, "character")) {
+		token->keyword = CHARACTER;
+	} else if (!strcmp(buffer, "string")) {
+		token->keyword = STRING;
+	} else if (!strcmp(buffer, "function")) {
+		token->keyword = FUNCTION;
+	} else if (!strcmp(buffer, "return")) {
+		token->keyword = RETURN;
+	} else if (!strcmp(buffer, "exit")) {
 		token->keyword = EXIT;
 	}
 
+	fseek(file, -1, 1);
+	return token;
+}
+
+TOKEN_LITERAL *generate_number(char current, FILE *file) {
+	// Creating a literal token
+	TOKEN_LITERAL *token = malloc(sizeof(TOKEN_LITERAL));
+
+	int buffer[9] = {};
+	int buffer_index = 0;
+	int number = 0;
+
+	// Store the characters recieved into a buffer
+	do {
+		buffer[buffer_index] = (current - '0');
+		buffer_index++;
+		
+		current = fgetc(file);
+	} while (current != EOF && isdigit(current));
+	
+	// Convert array to number
+	for (int idx = 0; idx < buffer_index; idx++) {
+		number = (number * 10) + buffer[idx];
+	}
+
+	// Assign the token values
+	token->literal = INTEGER_LITERAL;
+	token->value = number;
+
+	fseek(file, -1, 1);
 	return token;
 }
