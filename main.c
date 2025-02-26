@@ -59,13 +59,13 @@ void lexer(FILE *);
 // Helper functions to get tokens
 TOKEN_KEYWORD *generate_keyword(char, FILE *);
 TOKEN_LITERAL *generate_number(char, FILE *);
-TOKEN_LITERAL *generate_seperator(char, FILE *);
+TOKEN_SEPARATOR *generate_separator(char, FILE *);
 
 int main()
 {
 	// Open the source file in read mode
 	FILE *file;
-	file = fopen("code.silv", "r");
+	file = fopen("code.ffo", "r");
 
 	// If the file reading fails
 	if (file == NULL)

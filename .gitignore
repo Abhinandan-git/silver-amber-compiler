@@ -53,4 +53,4 @@ dkms.conf
 
 # VS Code and Code file
 .vscode
-*.silv
+*.ffo
