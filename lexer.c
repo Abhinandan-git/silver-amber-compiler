@@ -53,7 +53,6 @@ void lexer(FILE *input_file)
 	TOKEN *token;
 	do
 	{
-		token = malloc(sizeof(TOKEN));
 		token = get_next_token(input_file);
 		printf("TOKEN: %s\nTOKEN VALUE: %d\n\n", token->lexeme, token->value);
 	} while (token->type != TOKEN_EOF);
@@ -69,11 +68,6 @@ TOKEN *get_next_token(FILE *file)
 	// Remove spaces
 	while (isspace(current_character))
 	{
-		if (current_character == EOF)
-		{
-			token->type = TOKEN_EOF;
-			return token;
-		}
 		current_character = fgetc(file);
 	}
 
@@ -109,6 +103,7 @@ TOKEN *get_next_token(FILE *file)
 	if (isdigit(current_character))
 	{
 		token->type = TOKEN_NUMBER;
+		strcpy(token->lexeme, "NUMBER");
 		token->value = current_character - '0';
 		current_character = fgetc(file);
 
@@ -122,6 +117,9 @@ TOKEN *get_next_token(FILE *file)
 		return token;
 	}
 
+	char buffer[2] = {'\0'};
+	buffer[0] = current_character;
+	strcpy(token->lexeme, buffer);
 	if (current_character == '=')
 	{
 		token->type = TOKEN_ASSIGNMENT;
@@ -144,20 +142,12 @@ TOKEN *get_next_token(FILE *file)
 
 bool check_keyword(char *buffer)
 {
-	if (!strcmp(buffer, "integer"))
-	{
-		return true;
-	}
-	return false;
+	return !strcmp(buffer, "integer");
 }
 
 bool check_inbuilt_functions(char *buffer)
 {
-	if (!strcmp(buffer, "print"))
-	{
-		return true;
-	}
-	return false;
+	return !strcmp(buffer, "print");
 }
 
 bool check_operator(char character)
