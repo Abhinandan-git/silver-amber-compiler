@@ -1,90 +1,163 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+#include <malloc.h>
+#include <stdbool.h>
 
-#define MAX_BUFFER_SIZE 33
 #define ERROR_CODE -1
+#define MAX_BUFFER_SIZE 32
+
+typedef enum
+{
+	TOKEN_KEYWORD,
+	TOKEN_IDENTIFIER,
+	TOKEN_ASSIGNMENT,
+	TOKEN_NUMBER,
+	TOKEN_OPERATOR,
+	TOKEN_DELIMITER,
+	TOKEN_FUNCTION,
+	TOKEN_EOF
+} TOKEN_TYPE;
+
+typedef struct
+{
+	TOKEN_TYPE type;
+	char lexeme[32];
+	int value;
+} TOKEN;
 
 void lexer(FILE *);
-bool check_delimiter(char);
+TOKEN *get_next_token(FILE *);
+bool check_keyword(char *);
+bool check_inbuilt_functions(char *);
 bool check_operator(char);
-bool check_keyword(char *, int);
-bool check_identifier(char *);
-bool check_integer(char *, int);
+bool check_delimiter(char);
 
 int main()
 {
 	FILE *input_file = fopen("raw_code.ffo", "r");
 	if (!input_file)
 	{
-		printf("Input file could not be read.");
 		return ERROR_CODE;
 	}
 
 	lexer(input_file);
 
+	fclose(input_file);
 	return 0;
 }
 
-void lexer(FILE *file)
+void lexer(FILE *input_file)
 {
-	char current_character = fgetc(file);
-	char buffer[MAX_BUFFER_SIZE] = {'\0'};
-	int buffer_index = 0;
-
-	while (current_character != EOF)
+	TOKEN *token;
+	do
 	{
-		if (!check_delimiter(current_character))
+		token = malloc(sizeof(TOKEN));
+		token = get_next_token(input_file);
+		printf("TOKEN: %s\nTOKEN VALUE: %d\n\n", token->lexeme, token->value);
+	} while (token->type != TOKEN_EOF);
+}
+
+TOKEN *get_next_token(FILE *file)
+{
+	TOKEN *token = malloc(sizeof(TOKEN));
+	char current_character = fgetc(file);
+
+	token->value = 0;
+
+	// Remove spaces
+	while (isspace(current_character))
+	{
+		if (current_character == EOF)
 		{
-			buffer[buffer_index] = current_character;
-			buffer_index++;
-		}
-
-		if (check_delimiter(current_character) && buffer_index == 1)
-		{
-			if (check_operator(current_character))
-			{
-				printf("TOKEN TYPE: OPERATOR\t%c\n", current_character);
-			}
-			else {
-				printf("TOKEN TYPE: DELIMITER\t%c\n", current_character);
-			}
-
-			buffer_index = 0;
-			memset(buffer, '\0', sizeof(char) * MAX_BUFFER_SIZE);
-		}
-
-		else if (check_delimiter(current_character) && buffer_index > 0)
-		{
-			if (check_keyword(buffer, buffer_index))
-			{
-				printf("TOKEN TYPE: KEYWORD\t%s\n", buffer);
-			}
-			else if (check_integer(buffer, buffer_index))
-			{
-				printf("TOKEN TYPE: INTEGER\t%s\n", buffer);
-			}
-			else if (check_identifier(buffer))
-			{
-				printf("TOKEN TYPE: IDENTIFIER\t%s\n", buffer);
-			}
-			else if (!check_identifier(buffer) && !check_delimiter(current_character))
-			{
-				printf("TOKEN TYPE: UNIDENTIFIED\n");
-			}
-
-			buffer_index = 0;
-			memset(buffer, '\0', sizeof(char) * MAX_BUFFER_SIZE);
+			token->type = TOKEN_EOF;
+			return token;
 		}
 		current_character = fgetc(file);
 	}
+
+	if (isalpha(current_character))
+	{
+		char buffer[MAX_BUFFER_SIZE] = {0};
+		int buffer_index = 0;
+
+		while (isalnum(current_character))
+		{
+			buffer[buffer_index++] = current_character;
+			current_character = fgetc(file);
+		}
+		ungetc(current_character, file);
+
+		if (check_keyword(buffer))
+		{
+			token->type = TOKEN_KEYWORD;
+		}
+		else if (check_inbuilt_functions(buffer))
+		{
+			token->type = TOKEN_FUNCTION;
+		}
+		else
+		{
+			token->type = TOKEN_IDENTIFIER;
+		}
+		strcpy(token->lexeme, buffer);
+
+		return token;
+	}
+
+	if (isdigit(current_character))
+	{
+		token->type = TOKEN_NUMBER;
+		token->value = current_character - '0';
+		current_character = fgetc(file);
+
+		while (isdigit(current_character))
+		{
+			token->value = token->value * 10 + (current_character - '0');
+			current_character = fgetc(file);
+		}
+
+		ungetc(current_character, file);
+		return token;
+	}
+
+	if (current_character == '=')
+	{
+		token->type = TOKEN_ASSIGNMENT;
+	}
+	else if (check_operator(current_character))
+	{
+		token->type = TOKEN_OPERATOR;
+	}
+	else if (check_delimiter(current_character))
+	{
+		token->type = TOKEN_DELIMITER;
+	}
+	else if (current_character == EOF)
+	{
+		token->type = TOKEN_EOF;
+	}
+
+	return token;
 }
 
-bool check_delimiter(char character)
+bool check_keyword(char *buffer)
 {
-	return (character == ' ' || character == '+' || character == '-' || character == '*' || character == '/' || character == ',' || character == ';' || character == '%' || character == '>' || character == '<' || character == '=' || character == '(' || character == ')' || character == '[' || character == ']' || character == '{' || character == '}' || character == '`');
+	if (!strcmp(buffer, "integer"))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool check_inbuilt_functions(char *buffer)
+{
+	if (!strcmp(buffer, "print"))
+	{
+		return true;
+	}
+	return false;
 }
 
 bool check_operator(char character)
@@ -92,38 +165,7 @@ bool check_operator(char character)
 	return (character == '+' || character == '-' || character == '*' || character == '/' || character == '>' || character == '<' || character == '=');
 }
 
-bool check_identifier(char *buffer)
+bool check_delimiter(char character)
 {
-	if (!buffer)
-		return false;
-	return (!isdigit(buffer[0]) && !check_delimiter(buffer[0]));
-}
-
-bool check_keyword(char *buffer, int buffer_index)
-{
-	const char *keywords[] = {"character", "constant", "else", "float", "for", "if", "integer", "while", "exit", "return"};
-
-	for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++)
-	{
-		if (strcmp(buffer, keywords[i]) == 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool check_integer(char *buffer, int buffer_index)
-{
-	if (buffer == NULL || *buffer == '\0')
-	{
-		return false;
-	}
-	int i = 0;
-	while (isdigit(buffer[i]))
-	{
-		i++;
-	}
-	return (i == buffer_index);
+	return (character == ' ' || character == '+' || character == '-' || character == '*' || character == '/' || character == ',' || character == ';' || character == '%' || character == '>' || character == '<' || character == '=' || character == '(' || character == ')' || character == '[' || character == ']' || character == '{' || character == '}');
 }

@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MAX_FILE_SIZE 50000
 #define ERROR_CODE -1
 
 int preprocess(FILE *, char *);
+bool check_operator(char);
 
 int main()
 {
@@ -53,7 +55,7 @@ int preprocess(FILE *file, char *buffer)
 		}
 
 		// Removing extra whitespaces and newlines
-		if ((current_character == ' ' || current_character == '\t') && buffer[buffer_index - 1] == ' ' || current_character == '\n')
+		if ((current_character == ' ' || current_character == '\t') && (check_operator(buffer[buffer_index - 1]) || buffer[buffer_index - 1] == ' ' || buffer[buffer_index - 1] == ';') || current_character == '\n')
 		{
 			current_character = fgetc(file);
 			continue;
@@ -64,12 +66,24 @@ int preprocess(FILE *file, char *buffer)
 			current_character = ' ';
 		}
 
-		buffer[buffer_index] = current_character;
-		buffer_index++;
+		if (check_operator(current_character))
+		{
+			buffer[buffer_index - 1] = current_character;
+		}
+		else
+		{
+			buffer[buffer_index] = current_character;
+			buffer_index++;
+		}
 		current_character = fgetc(file);
 	}
 
 	buffer[buffer_index] = '\0';
 
 	return buffer_index;
+}
+
+bool check_operator(char character)
+{
+	return (character == '+' || character == '-' || character == '*' || character == '/' || character == '>' || character == '<' || character == '=');
 }
