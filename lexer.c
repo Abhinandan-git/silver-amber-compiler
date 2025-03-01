@@ -5,9 +5,12 @@
 #include <malloc.h>
 #include <stdbool.h>
 
+// Macros for constants
 #define ERROR_CODE -1
-#define MAX_BUFFER_SIZE 32
+#define MAX_BUFFER_SIZE 33
+#define MAX_TOKENS 50000
 
+// Generating the type of token
 typedef enum
 {
 	TOKEN_KEYWORD,
@@ -20,6 +23,7 @@ typedef enum
 	TOKEN_EOF
 } TOKEN_TYPE;
 
+// Structure of a token
 typedef struct
 {
 	TOKEN_TYPE type;
@@ -27,6 +31,7 @@ typedef struct
 	int value;
 } TOKEN;
 
+// Function declarations
 void lexer(FILE *);
 TOKEN *get_next_token(FILE *);
 bool check_keyword(char *);
@@ -48,13 +53,21 @@ int main()
 	return 0;
 }
 
+// Generating all token one-by-one
 void lexer(FILE *input_file)
 {
+	TOKEN all_tokens[MAX_TOKENS] = {0};
+	int token_index = 0;
 	TOKEN *token;
+
 	do
 	{
+		// Generate the next token
 		token = get_next_token(input_file);
+		// Storing the token generated
+		all_tokens[token_index++] = token;
 		printf("TOKEN: %s\nTOKEN VALUE: %d\n\n", token->lexeme, token->value);
+		// Repeat until EOF is encountered
 	} while (token->type != TOKEN_EOF);
 }
 
@@ -71,6 +84,7 @@ TOKEN *get_next_token(FILE *file)
 		current_character = fgetc(file);
 	}
 
+	// Check for keywords and identifiers
 	if (isalpha(current_character))
 	{
 		char buffer[MAX_BUFFER_SIZE] = {0};
@@ -83,23 +97,28 @@ TOKEN *get_next_token(FILE *file)
 		}
 		ungetc(current_character, file);
 
+		// Check if keyword is found
 		if (check_keyword(buffer))
 		{
 			token->type = TOKEN_KEYWORD;
 		}
+		// Check for any inbuilt functions
 		else if (check_inbuilt_functions(buffer))
 		{
 			token->type = TOKEN_FUNCTION;
 		}
+		// An identifier is found
 		else
 		{
 			token->type = TOKEN_IDENTIFIER;
 		}
+		// Copy the lexeme to the token
 		strcpy(token->lexeme, buffer);
 
 		return token;
 	}
 
+	// A number is found (outside of the literal) (only integers so far)
 	if (isdigit(current_character))
 	{
 		token->type = TOKEN_NUMBER;
@@ -117,6 +136,7 @@ TOKEN *get_next_token(FILE *file)
 		return token;
 	}
 
+	// Check for operators and delimiters
 	char buffer[2] = {'\0'};
 	buffer[0] = current_character;
 	strcpy(token->lexeme, buffer);
@@ -142,7 +162,7 @@ TOKEN *get_next_token(FILE *file)
 
 bool check_keyword(char *buffer)
 {
-	return !strcmp(buffer, "integer");
+	return (!strcmp(buffer, "integer") || !strcmp(buffer, "float") || !strcmp(buffer, "string") || !strcmp(buffer, "character") || !strcmp(buffer, "void") || !strcmp(buffer, "if") || !strcmp(buffer, "else") || !strcmp(buffer, "for") || !strcmp(buffer, "while") || !strcmp(buffer, "return"));
 }
 
 bool check_inbuilt_functions(char *buffer)
