@@ -162,7 +162,7 @@ TOKEN *get_next_token(FILE *file)
 
 bool check_keyword(char *buffer)
 {
-	return (!strcmp(buffer, "integer") || !strcmp(buffer, "float") || !strcmp(buffer, "string") || !strcmp(buffer, "character") || !strcmp(buffer, "void") || !strcmp(buffer, "if") || !strcmp(buffer, "else") || !strcmp(buffer, "for") || !strcmp(buffer, "while") || !strcmp(buffer, "return"));
+	return (!strcmp(buffer, "integer") || !strcmp(buffer, "float") || !strcmp(buffer, "string") || !strcmp(buffer, "character") || !strcmp(buffer, "void") || !strcmp(buffer, "if") || !strcmp(buffer, "else") || !strcmp(buffer, "for") || !strcmp(buffer, "while") || !strcmp(buffer, "return") || !strcmp(buffer, "and") || !strcmp(buffer, "or") || !strcmp(buffer, "not"));
 }
 
 bool check_inbuilt_functions(char *buffer)
