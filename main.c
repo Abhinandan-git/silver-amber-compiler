@@ -3,7 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-int main() {
+int main()
+{
 	printf("Full Form Oriented Compiler");
 	return 0;
 }
