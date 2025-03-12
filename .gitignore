@@ -54,3 +54,5 @@ dkms.conf
 # VS Code and Code file
 .vscode
 *.ffo
+
+/compiler-files-new
