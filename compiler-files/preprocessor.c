@@ -12,8 +12,14 @@ validity preprocessor(const char *input_file, const char *output_file)
 	if (!input || !output)
 	{
 		fprintf(stderr, "Could not open file(s).");
-		if (input) fclose(input);
-		if (output) fclose(output);
+		if (input)
+		{
+			fclose(input);
+		}
+		if (output)
+		{
+			fclose(output);
+		}
 		return INCOMPLETE;
 	}
 
@@ -30,7 +36,8 @@ validity preprocessor(const char *input_file, const char *output_file)
 		// Detect file directives
 		if (strncmp(trimmed_line, "#file_include", 13) == 0)
 		{
-			if (write_header_file(trimmed_line + 13, output) == INCOMPLETE) {
+			if (write_header_file(trimmed_line + 13, output) == INCOMPLETE)
+			{
 				return INCOMPLETE;
 			}
 			continue;
@@ -39,7 +46,8 @@ validity preprocessor(const char *input_file, const char *output_file)
 		// Detect macro directive
 		if (strncmp(trimmed_line, "#macro", 6) == 0)
 		{
-			if (get_macro_definition(trimmed_line + 6) == INCOMPLETE) {
+			if (get_macro_definition(trimmed_line + 6) == INCOMPLETE)
+			{
 				return INCOMPLETE;
 			}
 			continue;
