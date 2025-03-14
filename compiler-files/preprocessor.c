@@ -1,105 +1,94 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include "preprocessor.h"
+#include "main.h"
 
-// A code with 500k characters
-#define MAX_FILE_SIZE 500001
-// Error code to debug the defect
-#define ERROR_CODE -1
-
-// Function declarations
-int preprocess(FILE *, char *);
-bool check_operator(char);
-
-// Main function to run
-int main()
+validity preprocessor(const char *input_file, const char *output_file)
 {
-	// Opening main source code file
-	FILE *input_file = fopen("code.ffo", "r");
-	// If file failes to open
-	if (!input_file)
+	// Opening files
+	FILE *input = fopen(input_file, "r");
+	FILE *output = fopen(output_file, "w");
+
+	// Check if files opened successfully
+	if (!input || !output)
 	{
-		printf("Input file could not be read.");
-		return ERROR_CODE;
+		fprintf_s(stderr, "Could not open file(s).");
+		// Close the necessary file (Avoid memory leak)
+		if (input)
+		{
+			fclose(input);
+		}
+		if (output)
+		{
+			fclose(output);
+		}
+		// Return with error code
+		return INCOMPLETE;
 	}
 
-	// Get the buffer size of original code file with inital 0s
-	char buffer[MAX_FILE_SIZE] = {0};
-	if (!buffer)
+	// Get current line buffer for the file
+	char current_line[BUFFER_SIZE] = {'\0'};
+
+	while (fgets(current_line, BUFFER_SIZE, input))
 	{
-		return ERROR_CODE;
+		// Detect directives
+		if (strncmp(current_line, "#file_include", 13) == 0)
+		{
+			write_header_file(current_line + 13, output);
+		}
+
+		if (strncmp(current_line, "#macro", 6) == 0)
+		{
+			get_macro_definition(current_line + 6);
+		}
+
+		// fputs(current_line, output);
 	}
-	// Preprocess the file to generate raw file
-	int buffer_index = preprocess(input_file, buffer);
 
-	// Open an output file to put the raw file
-	FILE *output_file = fopen("raw_code.ffo", "w");
-	// Give error if output file fails to open
-	if (!output_file)
-	{
-		printf("Output file could not be created.");
-		return ERROR_CODE;
-	}
-
-	// Writing the raw code to a file
-	fwrite(buffer, sizeof(char), buffer_index, output_file);
-
-	return 0;
+	// Close files and return preprocessing successful
+	fclose(input);
+	fclose(output);
+	return COMPLETE;
 }
 
-int preprocess(FILE *file, char *buffer)
+validity write_header_file(char *current_pointer, FILE *output)
 {
-	char current_character = fgetc(file);
+	// Buffer for header file name
+	char include_file_name[BUFFER_SIZE] = {'\0'};
 
-	int buffer_index = 0;
-
-	while (current_character != EOF)
+	// Extract file name from include directive
+	if (sscanf(current_pointer, " <%[^>]>", include_file_name) != 1 && sscanf(current_pointer, "<%[^>]>", include_file_name) != 1)
 	{
-		// Removing comments (`)
-		if (current_character == '`')
-		{
-			while (current_character != '\n' && current_character != EOF)
-			{
-				current_character = fgetc(file);
-			}
-			continue;
-		}
-
-		// Removing extra whitespaces and newlines
-		if ((current_character == ' ' || current_character == '\t') && (check_operator(buffer[buffer_index - 1]) || buffer[buffer_index - 1] == ' ' || buffer[buffer_index - 1] == ';') || current_character == '\n')
-		{
-			current_character = fgetc(file);
-			continue;
-		}
-
-		// Replacing tabs with a space
-		if (current_character == '\t')
-		{
-			current_character = ' ';
-		}
-
-		// Removing spaces before the operator
-		if (check_operator(current_character))
-		{
-			buffer[buffer_index - 1] = current_character;
-		}
-		// Characters get written to the output file
-		else
-		{
-			buffer[buffer_index] = current_character;
-			buffer_index++;
-		}
-		current_character = fgetc(file);
+		fprintf(stderr, "Invalid #file_include format.\n");
+		return INCOMPLETE;
 	}
 
-	// End the file to ensure no data leaks
-	buffer[buffer_index] = '\0';
+	// File object for header file
+	FILE *include_file = fopen(include_file_name, "r");
 
-	return buffer_index;
+	// If file did not open
+	if (!include_file)
+	{
+		fprintf_s(stderr, "Could not include header file.");
+		return INCOMPLETE;
+	}
+
+	// Buffer for header content
+	char include_file_buffer[BUFFER_SIZE] = {'\0'};
+
+	// Get the header file's content line-by-line
+	while (fgets(include_file_buffer, BUFFER_SIZE, include_file))
+	{
+		fputs(include_file_buffer, output);
+	}
+
+	// Insert new line after header file (to be safe)
+	fputs("\n", output);
+
+	// Close the header file to avoid memory leak
+	fclose(include_file);
+
+	return COMPLETE;
 }
 
-// Function to check for operators
-bool check_operator(char character)
-{
-	return (character == '+' || character == '-' || character == '*' || character == '/' || character == '>' || character == '<' || character == '=');
+validity get_macro_definition(char *current_pointer) {
+
 }

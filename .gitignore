@@ -55,4 +55,6 @@ dkms.conf
 .vscode
 *.ffo
 
+# Testing files 
 /compiler-files-new
+*.ffh
