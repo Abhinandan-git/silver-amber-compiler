@@ -27,16 +27,21 @@ validity preprocessor(const char *input_file, const char *output_file)
 		char *trimmed_line = current_line;
 		trim_leading_whitespace(&trimmed_line);
 
-		// Detect directives
+		// Detect file directives
 		if (strncmp(trimmed_line, "#file_include", 13) == 0)
 		{
-			write_header_file(trimmed_line + 13, output);
+			if (write_header_file(trimmed_line + 13, output) == INCOMPLETE) {
+				return INCOMPLETE;
+			}
 			continue;
 		}
 
+		// Detect macro directive
 		if (strncmp(trimmed_line, "#macro", 6) == 0)
 		{
-			get_macro_definition(trimmed_line + 6);
+			if (get_macro_definition(trimmed_line + 6) == INCOMPLETE) {
+				return INCOMPLETE;
+			}
 			continue;
 		}
 
