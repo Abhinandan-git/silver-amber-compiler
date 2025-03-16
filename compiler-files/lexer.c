@@ -1,181 +1,116 @@
+#include "tokenizer.h"
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <malloc.h>
-#include <stdbool.h>
 
-// Macros for constants
-#define ERROR_CODE -1
-#define MAX_BUFFER_SIZE 33
-#define MAX_TOKENS 50000
+static char *file_buffer = NULL; // Pointer to hold file contents
 
-// Generating the type of token
-typedef enum
+validity init_lexer(const char *input_file_name)
 {
-	TOKEN_KEYWORD,
-	TOKEN_IDENTIFIER,
-	TOKEN_ASSIGNMENT,
-	TOKEN_NUMBER,
-	TOKEN_OPERATOR,
-	TOKEN_DELIMITER,
-	TOKEN_FUNCTION,
-	TOKEN_EOF
-} TOKEN_TYPE;
-
-// Structure of a token
-typedef struct
-{
-	TOKEN_TYPE type;
-	char lexeme[32];
-	int value;
-} TOKEN;
-
-// Function declarations
-void lexer(FILE *);
-TOKEN *get_next_token(FILE *);
-bool check_keyword(char *);
-bool check_inbuilt_functions(char *);
-bool check_operator(char);
-bool check_delimiter(char);
-
-int main()
-{
-	FILE *input_file = fopen("raw_code.ffo", "r");
+	// Open input file
+	FILE *input_file = fopen(input_file_name, "r");
 	if (!input_file)
 	{
-		return ERROR_CODE;
+		fprintf(stderr, "Could not open file: %s\n", input_file_name);
+		return INCOMPLETE;
 	}
 
-	lexer(input_file);
+	// Get file size
+	fseek(input_file, 0, SEEK_END);
+	long long input_size = ftell(input_file);
+	rewind(input_file);
 
+	// Allocate memory for file content
+	file_buffer = (char *)malloc(input_size + 1);
+	if (!file_buffer)
+	{
+		fprintf(stderr, "Memory allocation failed.\n");
+		fclose(input_file);
+		return INCOMPLETE;
+	}
+
+	// Read file content
+	size_t read_size = fread(file_buffer, sizeof(char), input_size, input_file);
+	file_buffer[read_size] = '\0'; // Null-terminate the string
 	fclose(input_file);
-	return 0;
+
+	return COMPLETE;
 }
 
-// Generating all token one-by-one
-void lexer(FILE *input_file)
+TOKEN *get_next_token()
 {
-	TOKEN all_tokens[MAX_TOKENS] = {0};
-	int token_index = 0;
-	TOKEN *token;
+	// Declare static pointers without initializing
+	static char *lexeme_begin = NULL;
+	static char *forward = NULL;
 
-	do
+	// Initialize them only on the first call
+	if (lexeme_begin == NULL || forward == NULL)
 	{
-		// Generate the next token
-		token = get_next_token(input_file);
-		// Storing the token generated
-		all_tokens[token_index++] = token;
-		printf("TOKEN: %s\nTOKEN VALUE: %d\n\n", token->lexeme, token->value);
-		// Repeat until EOF is encountered
-	} while (token->type != TOKEN_EOF);
-}
-
-TOKEN *get_next_token(FILE *file)
-{
-	TOKEN *token = malloc(sizeof(TOKEN));
-	char current_character = fgetc(file);
-
-	token->value = 0;
-
-	// Remove spaces
-	while (isspace(current_character))
-	{
-		current_character = fgetc(file);
+		lexeme_begin = file_buffer;
+		forward = file_buffer;
 	}
 
-	// Check for keywords and identifiers
-	if (isalpha(current_character))
+	// Skip whitespace
+	while (*forward && isspace(*forward))
 	{
-		char buffer[MAX_BUFFER_SIZE] = {0};
-		int buffer_index = 0;
+		forward++;
+	}
+	lexeme_begin = forward; // Mark start of token
 
-		while (isalnum(current_character))
-		{
-			buffer[buffer_index++] = current_character;
-			current_character = fgetc(file);
+	// Check if we reached the end
+	if (*forward == '\0')
+	{
+		return create_token(TOKEN_EOF, '\0');
+	}
+
+	// Extract token
+	if (isdigit(*forward))
+	{
+		while (isdigit(*forward) || *forward == '.')
+		{ // Capture numbers and floats
+			forward++;
 		}
-		ungetc(current_character, file);
-
-		// Check if keyword is found
-		if (check_keyword(buffer))
-		{
-			token->type = TOKEN_KEYWORD;
+	}
+	else if (isalpha(*forward) || *forward == '_')
+	{
+		while (isalnum(*forward) || *forward == '_')
+		{ // Capture identifiers
+			forward++;
 		}
-		// Check for any inbuilt functions
-		else if (check_inbuilt_functions(buffer))
-		{
-			token->type = TOKEN_FUNCTION;
-		}
-		// An identifier is found
-		else
-		{
-			token->type = TOKEN_IDENTIFIER;
-		}
-		// Copy the lexeme to the token
-		strcpy(token->lexeme, buffer);
-
-		return token;
+	}
+	else if (ispunct(*forward))
+	{
+		forward++; // Capture single punctuation
+	}
+	else
+	{
+		forward++; // Move past unknown characters
 	}
 
-	// A number is found (outside of the literal) (only integers so far)
-	if (isdigit(current_character))
-	{
-		token->type = TOKEN_NUMBER;
-		strcpy(token->lexeme, "NUMBER");
-		token->value = current_character - '0';
-		current_character = fgetc(file);
+	// Calculate token length
+	int length = forward - lexeme_begin;
 
-		while (isdigit(current_character))
-		{
-			token->value = token->value * 10 + (current_character - '0');
-			current_character = fgetc(file);
-		}
+	// Create buffer and copy token
+	char buffer[BUFFER_SIZE] = {'\0'};
+	strncpy(buffer, lexeme_begin, length);
+	buffer[length] = '\0';
 
-		ungetc(current_character, file);
-		return token;
-	}
+	// Compare and generate token
+	TOKEN *token = (TOKEN *)compare_buffer(buffer, length);
 
-	// Check for operators and delimiters
-	char buffer[2] = {'\0'};
-	buffer[0] = current_character;
-	strcpy(token->lexeme, buffer);
-	if (current_character == '=')
-	{
-		token->type = TOKEN_ASSIGNMENT;
-	}
-	else if (check_operator(current_character))
-	{
-		token->type = TOKEN_OPERATOR;
-	}
-	else if (check_delimiter(current_character))
-	{
-		token->type = TOKEN_DELIMITER;
-	}
-	else if (current_character == EOF)
-	{
-		token->type = TOKEN_EOF;
-	}
+	// Move lexeme_begin to next token
+	lexeme_begin = forward;
 
 	return token;
 }
 
-bool check_keyword(char *buffer)
+// Free allocated memory
+void free_lexer()
 {
-	return (!strcmp(buffer, "integer") || !strcmp(buffer, "float") || !strcmp(buffer, "string") || !strcmp(buffer, "character") || !strcmp(buffer, "void") || !strcmp(buffer, "if") || !strcmp(buffer, "else") || !strcmp(buffer, "for") || !strcmp(buffer, "while") || !strcmp(buffer, "return") || !strcmp(buffer, "and") || !strcmp(buffer, "or") || !strcmp(buffer, "not"));
-}
-
-bool check_inbuilt_functions(char *buffer)
-{
-	return !strcmp(buffer, "print");
-}
-
-bool check_operator(char character)
-{
-	return (character == '+' || character == '-' || character == '*' || character == '/' || character == '>' || character == '<' || character == '=');
-}
-
-bool check_delimiter(char character)
-{
-	return (character == ' ' || character == '+' || character == '-' || character == '*' || character == '/' || character == ',' || character == ';' || character == '%' || character == '>' || character == '<' || character == '=' || character == '(' || character == ')' || character == '[' || character == ']' || character == '{' || character == '}');
+	if (file_buffer)
+	{
+		free(file_buffer);
+		file_buffer = NULL;
+	}
 }
