@@ -1,21 +1,23 @@
 #include "tokenizer.h"
+#include "lexer.h"
+#include <stdlib.h>
 #include <ctype.h>
 
-// List of keywords (modify as needed)
-const char *keywords[] = {"if", "else", "while", "return", "int", "char", "float", "void", "for", "break"};
+// List of keywords
+const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "void", "for", "break", "constant", "exit"};
 const int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
 
-// List of operators (modify as needed)
+// List of operators
 const char *operators[] = {"+", "-", "*", "/", "=", "==", "!=", "<", ">", "<=", ">="};
 const int operator_count = sizeof(operators) / sizeof(operators[0]);
 
-// List of punctuators (modify as needed)
+// List of punctuators
 const char *punctuators[] = {";", ",", "(", ")", "{", "}", "[", "]"};
 const int punctuator_count = sizeof(punctuators) / sizeof(punctuators[0]);
 
-Token *create_token(TokenType type, const char *value)
+TOKEN *create_token(TokenType type, const char *value)
 {
-	Token *token = (Token *)malloc(sizeof(Token));
+	TOKEN *token = (TOKEN *)malloc(sizeof(TOKEN));
 	if (!token)
 	{
 		fprintf(stderr, "Memory allocation failed for token\n");
@@ -24,8 +26,6 @@ Token *create_token(TokenType type, const char *value)
 
 	token->type = type;
 	token->value = strdup(value); // Duplicate string to store in token
-	token->next = NULL;
-	token->prev = NULL;
 	return token;
 }
 
@@ -65,7 +65,7 @@ int is_punctuator(const char *lexeme)
 	return 0;
 }
 
-Token *compare_buffer(char *buffer, int length)
+TOKEN *compare_buffer(char *buffer, int length)
 {
 	if (length == 0)
 	{

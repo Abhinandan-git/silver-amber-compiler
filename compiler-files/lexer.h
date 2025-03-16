@@ -9,28 +9,8 @@
 
 #include "main.h"
 
-typedef enum
-{
-	TOKEN_EOF = 0,
-	TOKEN_IDENTIFIER,
-	TOKEN_NUMBER,
-	TOKEN_STRING,
-	TOKEN_KEYWORD,
-	TOKEN_OPERATOR,
-	TOKEN_PUNCTUATOR,
-	TOKEN_ERROR
-} TokenType;
-
-typedef struct
-{
-	TokenType type;
-	char *value;
-	Token *next;
-	Token *prev;
-} Token;
-
 validity init_lexer(const char *input_file);
 void free_lexer();
-Token *get_next_token();
+TOKEN *get_next_token();
 
 #endif

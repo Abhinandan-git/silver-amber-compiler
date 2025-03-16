@@ -83,12 +83,13 @@ validity preprocessor(const char *input_file, const char *output_file)
 			}
 
 			// Extract a word
-			char word[BUFFER_SIZE] = {0};
+			char word[BUFFER_SIZE] = {'\0'};
 			int word_index = 0;
 
 			while (isalnum(*current_character) || *current_character == '_')
 			{
-				word[word_index++] = *current_character++;
+				word[word_index++] = *current_character;
+				current_character++;
 			}
 
 			if (word_index > 0)

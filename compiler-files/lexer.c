@@ -1,5 +1,5 @@
-#include "lexer.h"
 #include "tokenizer.h"
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +21,7 @@ validity init_lexer(const char *input_file_name)
 	long long input_size = ftell(input_file);
 	rewind(input_file);
 
-	// Allocate memory for file content (+1 for null terminator)
+	// Allocate memory for file content
 	file_buffer = (char *)malloc(input_size + 1);
 	if (!file_buffer)
 	{
@@ -31,22 +31,14 @@ validity init_lexer(const char *input_file_name)
 	}
 
 	// Read file content
-	size_t read_size = fread(file_buffer, 1, input_size, input_file);
+	size_t read_size = fread(file_buffer, sizeof(char), input_size, input_file);
 	file_buffer[read_size] = '\0'; // Null-terminate the string
 	fclose(input_file);
-
-	// Check if file was fully read
-	if (read_size != input_size)
-	{
-		fprintf(stderr, "Error reading file.\n");
-		free(file_buffer);
-		return INCOMPLETE;
-	}
 
 	return COMPLETE;
 }
 
-Token *get_next_token()
+TOKEN *get_next_token()
 {
 	// Declare static pointers without initializing
 	static char *lexeme_begin = NULL;
@@ -59,7 +51,7 @@ Token *get_next_token()
 		forward = file_buffer;
 	}
 
-	// Skip whitespace (modify as needed)
+	// Skip whitespace
 	while (*forward && isspace(*forward))
 	{
 		forward++;
@@ -69,13 +61,31 @@ Token *get_next_token()
 	// Check if we reached the end
 	if (*forward == '\0')
 	{
-		return NULL;
+		return create_token(TOKEN_EOF, '\0');
 	}
 
-	// Extract token (simple example: identifier or keyword)
-	while (*forward && !isspace(*forward))
+	// Extract token
+	if (isdigit(*forward))
 	{
-		forward++;
+		while (isdigit(*forward) || *forward == '.')
+		{ // Capture numbers and floats
+			forward++;
+		}
+	}
+	else if (isalpha(*forward) || *forward == '_')
+	{
+		while (isalnum(*forward) || *forward == '_')
+		{ // Capture identifiers
+			forward++;
+		}
+	}
+	else if (ispunct(*forward))
+	{
+		forward++; // Capture single punctuation
+	}
+	else
+	{
+		forward++; // Move past unknown characters
 	}
 
 	// Calculate token length
@@ -87,7 +97,7 @@ Token *get_next_token()
 	buffer[length] = '\0';
 
 	// Compare and generate token
-	Token *token = compare_buffer(buffer, length);
+	TOKEN *token = (TOKEN *)compare_buffer(buffer, length);
 
 	// Move lexeme_begin to next token
 	lexeme_begin = forward;
