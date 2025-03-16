@@ -1,6 +1,5 @@
 #include "preprocessor.h"
 #include "macro.h"
-#include "main.h"
 
 validity preprocessor(const char *input_file, const char *output_file)
 {
@@ -29,14 +28,10 @@ validity preprocessor(const char *input_file, const char *output_file)
 
 	while (fgets(current_line, BUFFER_SIZE, input))
 	{
-		// Remove leading whitespaces
-		char *trimmed_line = current_line;
-		trim_leading_whitespace(&trimmed_line);
-
 		// Detect file directives
-		if (strncmp(trimmed_line, "#file_include", 13) == 0)
+		if (strncmp(current_line, "#file_include", 13) == 0)
 		{
-			if (write_header_file(trimmed_line + 13, output) == INCOMPLETE)
+			if (write_header_file(current_line + 13, output) == INCOMPLETE)
 			{
 				return INCOMPLETE;
 			}
@@ -44,16 +39,16 @@ validity preprocessor(const char *input_file, const char *output_file)
 		}
 
 		// Detect macro directive
-		if (strncmp(trimmed_line, "#macro", 6) == 0)
+		if (strncmp(current_line, "#macro", 6) == 0)
 		{
-			if (get_macro_definition(trimmed_line + 6) == INCOMPLETE)
+			if (get_macro_definition(current_line + 6) == INCOMPLETE)
 			{
 				return INCOMPLETE;
 			}
 			continue;
 		}
 
-		char *current_character = trimmed_line;
+		char *current_character = current_line;
 		while (*current_character)
 		{
 			// Single-line comment removal ("/- ...")
@@ -124,15 +119,6 @@ validity preprocessor(const char *input_file, const char *output_file)
 	fclose(output);
 
 	return COMPLETE;
-}
-
-void trim_leading_whitespace(char **line_pointer)
-{
-	while (**line_pointer != '\0' && isspace(**line_pointer))
-	{
-		// Move pointer forward
-		(*line_pointer)++;
-	}
 }
 
 validity write_header_file(char *current_pointer, FILE *output)

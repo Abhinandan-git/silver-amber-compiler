@@ -15,6 +15,5 @@
 validity preprocessor(const char *, const char *);
 validity write_header_file(char *, FILE *);
 validity get_macro_definition(char *);
-void trim_leading_whitespace(char **);
 
 #endif
