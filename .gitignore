@@ -53,8 +53,7 @@ dkms.conf
 
 # VS Code and Code file
 .vscode
-*.ffo
 
-# Testing files 
-/compiler-files-new
-*.ffh
+# Other files
+/build
+/tests
