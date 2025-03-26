@@ -12,7 +12,7 @@ int main()
 		return INCOMPLETE;
 	}
 
-	TOKEN *token = get_next_token();
+	Token *token = get_next_token();
 	do
 	{
 		printf("TOKEN TYPE: %d\tLEXEME: %s\n", token->type, token->value);

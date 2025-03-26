@@ -15,9 +15,9 @@ const int operator_count = sizeof(operators) / sizeof(operators[0]);
 const char *punctuators[] = {";", ",", "(", ")", "{", "}", "[", "]"};
 const int punctuator_count = sizeof(punctuators) / sizeof(punctuators[0]);
 
-TOKEN *create_token(TokenType type, const char *value)
+Token *create_token(TokenType type, const char *value)
 {
-	TOKEN *token = (TOKEN *)malloc(sizeof(TOKEN));
+	Token *token = (Token *)malloc(sizeof(Token));
 	if (!token)
 	{
 		fprintf(stderr, "Memory allocation failed for token\n");
@@ -65,7 +65,7 @@ int is_punctuator(const char *lexeme)
 	return 0;
 }
 
-TOKEN *compare_buffer(char *buffer, int length)
+Token *compare_buffer(char *buffer, int length)
 {
 	if (length == 0)
 	{
