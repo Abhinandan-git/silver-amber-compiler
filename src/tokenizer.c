@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 // List of keywords
-const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "void", "for", "break", "constant", "exit"};
+const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "void", "for", "break", "constant", "exit", "variable"};
 const int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
 
 // List of operators

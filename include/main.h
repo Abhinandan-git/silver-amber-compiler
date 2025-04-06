@@ -58,5 +58,6 @@ int main();
 #include "lexer.h"
 #include "tokenizer.h"
 #include "macro.h"
+#include "parser.h"
 
 #endif
