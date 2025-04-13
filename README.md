@@ -1,10 +1,10 @@
 # Silver Amber Compiler
 
-Silver Amber Compiler is a custom compiler for the FFO programming language, implemented entirely in C. This project aims to create a fully functional compiler, including lexical analysis (lexer), parsing (LR(1) or LALR(1) parser), and code generation, without using external tools like Flex or Bison.
+Silver Amber Compiler is a custom compiler for the FFO programming language, implemented entirely in C. This project aims to create a fully functional compiler, including lexical analysis (lexer), parsing CLR(1) parser, and code generation, without using external tools like Flex or Bison.
 
 ## Features
 - **Lexical Analysis**: Converts source code into tokens using a custom lexer.
-- **Parsing**: Implements an LR(1) or LALR(1) parser for syntax analysis.
+- **Parsing**: Implements an CLR(1) parser for syntax analysis.
 - **Compilation**: Translates FFO code into executable machine code.
 - **Custom Language Design**: FFO is a new programming language being developed for this project.
 - **Implemented in C**: No external dependencies or compiler generators.
@@ -16,20 +16,16 @@ silver-amber-compiler/
 │   ├── lexer.c        # Lexer implementation
 │   ├── parser.c       # Parser implementation
 │   ├── main.c         # Compiler entry point
-│   ├── codegen.c      # Code generation (future implementation)
 ├── include/           # Header files
 │   ├── lexer.h
 │   ├── parser.h
-│   ├── codegen.h
 ├── build/             # Compiled objects and binary output
-├── Makefile           # Build system configuration
 ├── README.md          # Project documentation
 ```
 
 ## Installation & Building
 ### **Prerequisites**
 - GCC (or any C compiler)
-- `make` (for automated build)
 
 ### **Build Instructions**
 1. Clone the repository:

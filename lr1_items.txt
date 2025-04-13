@@ -1,0 +1,4 @@
+State 0:  [S' -> • program, $]
+
+State 1:  [S' -> program •, $]
+
