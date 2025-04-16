@@ -1,5 +1,5 @@
-#include "preprocessor.h"
 #include "macro.h"
+#include "preprocessor.h"
 
 validity preprocessor(const char *input_file, const char *output_file)
 {
@@ -24,7 +24,7 @@ validity preprocessor(const char *input_file, const char *output_file)
 
 	// Get current line buffer for the file
 	char current_line[BUFFER_SIZE] = {'\0'};
-	bool inside_block_comment = false;
+	bool inside_block_comment = 0;
 
 	while (fgets(current_line, BUFFER_SIZE, input))
 	{
@@ -60,7 +60,7 @@ validity preprocessor(const char *input_file, const char *output_file)
 			// Block comment removal ("/. ... ./")
 			if (!inside_block_comment && *current_character == '/' && *(current_character + 1) == '.')
 			{
-				inside_block_comment = true;
+				inside_block_comment = 1;
 				current_character += 2; // Skip "/."
 				continue;
 			}
@@ -76,7 +76,7 @@ validity preprocessor(const char *input_file, const char *output_file)
 				// End of block comment found
 				if (*current_character == '.' && *(current_character + 1) == '/')
 				{
-					inside_block_comment = false;
+					inside_block_comment = 0;
 					current_character += 2; // Skip "./"
 				}
 				continue; // Continue skipping
