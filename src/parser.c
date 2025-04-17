@@ -1,19 +1,40 @@
 #include "parser.h"
+#include "tables.h"
 
-void push(ParserStack *stack, int state, Token token)
+int top = 0;
+int state_stack[STACK_SIZE] = {};
+char action_stack[STACK_SIZE] = {};
+
+void push(int state)
 {
-	if (stack->top < STACK_SIZE - 1)
+	if (top >= STACK_SIZE - 1)
 	{
-		stack->items[++stack->top] = (StackElement){state, token};
+		printf("Stack overflow!\n");
+		exit(1);
 	}
+	state_stack[++top] = state;
 }
 
-void pop(ParserStack *stack, int count)
+int pop()
 {
-	stack->top -= count;
+	if (top < 0)
+	{
+		printf("Stack underflow!\n");
+		exit(1);
+	}
+	return state_stack[top--];
 }
 
-StackElement top(ParserStack *stack)
+int peek()
 {
-	return stack->items[stack->top];
+	if (top < 0)
+		return -1;
+	return state_stack[top];
+}
+
+void parser(const char *input_file)
+{
+	init_lexer(input_file);
+	Token *token = get_next_token();
+	push(0);
 }

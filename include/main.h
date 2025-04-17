@@ -46,11 +46,58 @@ typedef struct
 	Token token;
 } StackElement;
 
-typedef struct
-{
-	StackElement items[STACK_SIZE];
-	int top;
-} ParserStack;
+typedef enum {
+	SYMBOL_SEMICOLON,     // ;
+	SYMBOL_STATIC,        // static
+	SYMBOL_COMMA,         // ,
+	SYMBOL_ID,            // identifier
+	SYMBOL_LBRACKET,      // [
+	SYMBOL_NUMCONST,      // numeric constant
+	SYMBOL_RBRACKET,      // ]
+	SYMBOL_INTEGER,       // integer
+	SYMBOL_BOOLEAN,       // boolean
+	SYMBOL_CHARACTER,     // character
+	SYMBOL_LPAREN,        // (
+	SYMBOL_RPAREN,        // )
+	SYMBOL_LBRACE,        // {
+	SYMBOL_RBRACE,        // }
+	SYMBOL_IF,            // if
+	SYMBOL_THEN,          // then
+	SYMBOL_WHILE,         // while
+	SYMBOL_DO,            // do
+	SYMBOL_FOR,           // for
+	SYMBOL_ASSIGN,        // =
+	SYMBOL_TO,            // to
+	SYMBOL_RETURN,        // return
+	SYMBOL_BREAK,         // break
+	SYMBOL_OR,            // or
+	SYMBOL_AND,           // and
+	SYMBOL_NOT,           // not
+	SYMBOL_LE,            // <=
+	SYMBOL_LT,            // <
+	SYMBOL_GT,            // >
+	SYMBOL_GE,            // >=
+	SYMBOL_EQ,            // ==
+	SYMBOL_NEQ,           // !=
+	SYMBOL_MINMAXOP,      // minmaxop (e.g., :>: or :<:)
+	SYMBOL_PLUS,          // +
+	SYMBOL_MINUS,         // −
+	SYMBOL_MULT,          // ∗
+	SYMBOL_DIV,           // /
+	SYMBOL_MOD,           // %
+	SYMBOL_QUESTION,      // ?
+	SYMBOL_CHARCONST,     // character constant
+	SYMBOL_STRINGCONST,   // string constant
+	SYMBOL_TRUE,          // true
+	SYMBOL_FALSE,         // false
+	SYMBOL_DOLLAR,        // $
+	SYMBOL_ERROR          // error or unknown token
+} Symbol;
+
+typedef struct {
+	const char* lexeme;
+	Symbol symbol;
+} LexemeSymbolMap;
 
 int main();
 

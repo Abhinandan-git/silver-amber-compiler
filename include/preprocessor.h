@@ -8,8 +8,6 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "main.h"
-
 #define BUFFER_SIZE 1024
 
 validity preprocessor(const char *, const char *);
