@@ -38,7 +38,7 @@ validity init_lexer(const char *input_file_name)
 	return COMPLETE;
 }
 
-TOKEN *get_next_token()
+Token *get_next_token()
 {
 	// Declare static pointers without initializing
 	static char *lexeme_begin = NULL;
@@ -97,7 +97,7 @@ TOKEN *get_next_token()
 	buffer[length] = '\0';
 
 	// Compare and generate token
-	TOKEN *token = (TOKEN *)compare_buffer(buffer, length);
+	Token *token = (Token *)compare_buffer(buffer, length);
 
 	// Move lexeme_begin to next token
 	lexeme_begin = forward;

@@ -11,6 +11,6 @@
 
 validity init_lexer(const char *input_file);
 void free_lexer();
-TOKEN *get_next_token();
+Token *get_next_token();
 
 #endif

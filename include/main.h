@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#define STACK_SIZE 256
+
 typedef enum
 {
 	COMPLETE,
@@ -36,9 +38,19 @@ typedef struct Token
 {
 	TokenType type;
 	char *value;
-	struct Token *next;
-	struct Token *prev;
-} TOKEN;
+} Token;
+
+typedef struct
+{
+	int state;
+	Token token;
+} StackElement;
+
+typedef struct
+{
+	StackElement items[STACK_SIZE];
+	int top;
+} ParserStack;
 
 int main();
 
@@ -46,5 +58,6 @@ int main();
 #include "lexer.h"
 #include "tokenizer.h"
 #include "macro.h"
+#include "parser.h"
 
 #endif
