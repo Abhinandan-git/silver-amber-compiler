@@ -1,9 +1,12 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "tables.h"
 #include "main.h"
+#include "tables.h"
 
-#define STACK_SIZE 1024
+void push(int);
+int pop();
+int peek();
+validity parser(const char *);
 
 #endif

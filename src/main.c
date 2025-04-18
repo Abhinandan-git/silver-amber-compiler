@@ -2,23 +2,12 @@
 
 int main()
 {
-	if (preprocessor("file.ffo", "raw_code.ffo") == INCOMPLETE)
+	if (preprocessor("input.ffo", "raw_code.ffo") == INCOMPLETE)
 	{
 		return INCOMPLETE;
 	}
 
-	if (init_lexer("raw_code.ffo") == INCOMPLETE)
-	{
-		return INCOMPLETE;
-	}
-
-	Token *token = get_next_token();
-	do
-	{
-		printf("TOKEN TYPE: %d\tLEXEME: %s\n", token->type, token->value);
-		free(token);
-		token = get_next_token();
-	} while (token->type != TOKEN_EOF);
+	parser("raw_code.ffo");
 
 	free_lexer();
 

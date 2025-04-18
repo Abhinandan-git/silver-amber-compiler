@@ -1,0 +1,3 @@
+integer main() {
+	variable name = 0;
+}
