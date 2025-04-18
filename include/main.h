@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#define STACK_SIZE 256
+#define STACK_SIZE 1024
 
 typedef enum
 {
@@ -103,8 +103,9 @@ int main();
 
 #include "preprocessor.h"
 #include "lexer.h"
+#include "parser.h"
 #include "tokenizer.h"
 #include "macro.h"
-#include "parser.h"
+#include "tables.h"
 
 #endif

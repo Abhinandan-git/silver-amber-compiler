@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "tables.h"
 
 int top = 0;
 int state_stack[STACK_SIZE] = {};
@@ -32,9 +31,19 @@ int peek()
 	return state_stack[top];
 }
 
-void parser(const char *input_file)
+validity parser(const char *input_file)
 {
-	init_lexer(input_file);
+	if (init_lexer(input_file) == INCOMPLETE) {
+		return INCOMPLETE;
+	}
 	Token *token = get_next_token();
 	push(0);
+
+	while (token->type != TOKEN_EOF) {
+		printf("TOKEN: %d TOKEN: %s\n", token->type, token->value);
+		
+		token = get_next_token();
+	}
+
+	return COMPLETE;
 }
