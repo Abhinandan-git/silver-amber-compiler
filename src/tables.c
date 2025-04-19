@@ -96,7 +96,6 @@ Production productions[] = {
 		{"constant", {"STRINGCONST"}, 1},
 		{"constant", {"true"}, 1},
 		{"constant", {"false"}, 1}};
-const int number_of_productions = sizeof(productions) / sizeof(productions[0]);
 
 char action_table[][44] = {
 		"err", "err", "err", "s6", "err", "err", "err", "s7", "s8", "s9", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err"

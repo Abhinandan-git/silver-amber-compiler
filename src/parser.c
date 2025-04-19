@@ -33,16 +33,24 @@ int peek()
 
 validity parser(const char *input_file)
 {
-	if (init_lexer(input_file) == INCOMPLETE) {
+	if (init_lexer(input_file) == INCOMPLETE)
+	{
 		return INCOMPLETE;
 	}
-	Token *token = get_next_token();
+	Token *lookahead_token = get_next_token();
 	push(0);
 
-	while (token->type != TOKEN_EOF) {
-		printf("TOKEN: %d TOKEN: %s\n", token->type, token->value);
-		
-		token = get_next_token();
+	while (lookahead_token->type != TOKEN_EOF)
+	{
+		LexemeSymbolMap *symbol = (LexemeSymbolMap *)malloc(sizeof(LexemeSymbolMap));
+		symbol->symbol = map_token_to_symbol(lookahead_token->type, lookahead_token->value);
+		symbol->lexeme = malloc(strlen(lookahead_token->value) + 1);
+		strcpy(symbol->lexeme, lookahead_token->value);
+
+		free(symbol->lexeme);
+		free(symbol);
+
+		lookahead_token = get_next_token();
 	}
 
 	return COMPLETE;

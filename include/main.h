@@ -95,7 +95,7 @@ typedef enum {
 } Symbol;
 
 typedef struct {
-	const char* lexeme;
+	char* lexeme;
 	Symbol symbol;
 } LexemeSymbolMap;
 
