@@ -4,11 +4,11 @@
 #include <ctype.h>
 
 // List of keywords
-const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "void", "for", "break", "constant", "exit", "variable"};
+const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "for", "break", "constant", "exit", "variable"};
 const int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
 
 // List of operators
-const char *operators[] = {"+", "-", "*", "/", "=", "==", "!=", "<", ">", "<=", ">="};
+const char *operators[] = {"+", "-", "*", "/", "=", "<", ">"};
 const int operator_count = sizeof(operators) / sizeof(operators[0]);
 
 // List of punctuators

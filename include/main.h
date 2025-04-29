@@ -40,16 +40,10 @@ typedef struct Token
 	char *value;
 } Token;
 
-typedef struct
-{
-	int state;
-	Token token;
-} StackElement;
-
 int main();
 
 #include "preprocessor.h"
-#include "parser.h"
+#include "lexer.h"
 #include "tokenizer.h"
 #include "macro.h"
 
