@@ -10,6 +10,7 @@
 #include "main.h"
 
 validity init_lexer(const char *input_file);
+Token *peek_token();
 Token *get_next_token();
 void free_lexer();
 

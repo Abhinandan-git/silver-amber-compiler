@@ -1,21 +1,8 @@
 #include "tokenizer.h"
-#include "lexer.h"
 #include <stdlib.h>
 #include <ctype.h>
 
-// List of keywords
-const char *keywords[] = {"if", "else", "while", "return", "integer", "character", "floating", "string", "for", "break", "constant", "exit", "variable"};
-const int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
-
-// List of operators
-const char *operators[] = {"+", "-", "*", "/", "=", "<", ">"};
-const int operator_count = sizeof(operators) / sizeof(operators[0]);
-
-// List of punctuators
-const char *punctuators[] = {";", ",", "(", ")", "{", "}", "[", "]"};
-const int punctuator_count = sizeof(punctuators) / sizeof(punctuators[0]);
-
-Token *create_token(TokenType type, const char *value)
+Token *create_token(TokenType type, char *value)
 {
 	Token *token = (Token *)malloc(sizeof(Token));
 	if (!token)
@@ -29,42 +16,6 @@ Token *create_token(TokenType type, const char *value)
 	return token;
 }
 
-int is_keyword(const char *lexeme)
-{
-	for (int i = 0; i < keyword_count; i++)
-	{
-		if (strcmp(lexeme, keywords[i]) == 0)
-		{
-			return 1;
-		}
-	}
-	return 0;
-}
-
-int is_operator(const char *lexeme)
-{
-	for (int i = 0; i < operator_count; i++)
-	{
-		if (strcmp(lexeme, operators[i]) == 0)
-		{
-			return 1;
-		}
-	}
-	return 0;
-}
-
-int is_punctuator(const char *lexeme)
-{
-	for (int i = 0; i < punctuator_count; i++)
-	{
-		if (strcmp(lexeme, punctuators[i]) == 0)
-		{
-			return 1;
-		}
-	}
-	return 0;
-}
-
 Token *compare_buffer(char *buffer, int length)
 {
 	if (length == 0)
@@ -72,7 +23,9 @@ Token *compare_buffer(char *buffer, int length)
 		return create_token(TOKEN_EOF, "EOF");
 	}
 
-	// Check if it’s a number (integer or float)
+	buffer[length] = '\0'; // Ensure null-terminated string
+
+	// Check for numeric literal
 	int is_numeric = 1, has_dot = 0;
 	for (int i = 0; i < length; i++)
 	{
@@ -80,7 +33,7 @@ Token *compare_buffer(char *buffer, int length)
 		{
 			if (buffer[i] == '.' && !has_dot)
 			{
-				has_dot = 1; // Allow one dot for floating-point numbers
+				has_dot = 1;
 			}
 			else
 			{
@@ -91,39 +44,72 @@ Token *compare_buffer(char *buffer, int length)
 	}
 	if (is_numeric)
 	{
-		return create_token(TOKEN_NUMBER, buffer);
+		if (has_dot)
+		{
+			return create_token(TOKEN_FLOAT, buffer);
+		}
+		else
+		{
+			return create_token(TOKEN_INTEGER, buffer);
+		}
 	}
 
-	// Check if it's a keyword
-	if (is_keyword(buffer))
-	{
-		return create_token(TOKEN_KEYWORD, buffer);
-	}
+	// Match keywords and condition operators
+	if (strcmp(buffer, "for") == 0)
+		return create_token(TOKEN_FOR, buffer);
+	if (strcmp(buffer, "from") == 0)
+		return create_token(TOKEN_FROM, buffer);
+	if (strcmp(buffer, "to") == 0)
+		return create_token(TOKEN_TO, buffer);
+	if (strcmp(buffer, "by") == 0)
+		return create_token(TOKEN_BY, buffer);
+	if (strcmp(buffer, "if") == 0)
+		return create_token(TOKEN_IF, buffer);
+	if (strcmp(buffer, "function") == 0)
+		return create_token(TOKEN_FUNCTION, buffer);
 
-	// Check if it's an operator
-	if (is_operator(buffer))
-	{
-		return create_token(TOKEN_OPERATOR, buffer);
-	}
+	// Conditional operators
+	if (strcmp(buffer, "lt") == 0)
+		return create_token(TOKEN_LT, buffer);
+	if (strcmp(buffer, "gt") == 0)
+		return create_token(TOKEN_GT, buffer);
+	if (strcmp(buffer, "le") == 0)
+		return create_token(TOKEN_LE, buffer);
+	if (strcmp(buffer, "ge") == 0)
+		return create_token(TOKEN_GE, buffer);
+	if (strcmp(buffer, "eq") == 0)
+		return create_token(TOKEN_EQ, buffer);
+	if (strcmp(buffer, "ne") == 0)
+		return create_token(TOKEN_NE, buffer);
 
-	// Check if it's a punctuator
-	if (is_punctuator(buffer))
-	{
-		return create_token(TOKEN_PUNCTUATOR, buffer);
-	}
+	// Arithmetic and assignment operators
+	if (strcmp(buffer, "+") == 0)
+		return create_token(TOKEN_PLUS, buffer);
+	if (strcmp(buffer, "-") == 0)
+		return create_token(TOKEN_MINUS, buffer);
+	if (strcmp(buffer, "*") == 0)
+		return create_token(TOKEN_STAR, buffer);
+	if (strcmp(buffer, "/") == 0)
+		return create_token(TOKEN_SLASH, buffer);
+	if (strcmp(buffer, "=") == 0)
+		return create_token(TOKEN_ASSIGN, buffer);
 
-	// If it starts with a quote, consider it a string
-	if (buffer[0] == '"' && buffer[length - 1] == '"')
-	{
-		return create_token(TOKEN_STRING, buffer);
-	}
+	// Punctuators
+	if (strcmp(buffer, "(") == 0)
+		return create_token(TOKEN_LPAREN, buffer);
+	if (strcmp(buffer, ")") == 0)
+		return create_token(TOKEN_RPAREN, buffer);
+	if (strcmp(buffer, "{") == 0)
+		return create_token(TOKEN_LBRACE, buffer);
+	if (strcmp(buffer, "}") == 0)
+		return create_token(TOKEN_RBRACE, buffer);
 
-	// If it starts with a letter or underscore, treat it as an identifier
+	// Identifiers
 	if (isalpha(buffer[0]) || buffer[0] == '_')
 	{
 		return create_token(TOKEN_IDENTIFIER, buffer);
 	}
 
-	// If nothing matches, return an error token
+	// Fallback: unknown token
 	return create_token(TOKEN_ERROR, buffer);
 }
