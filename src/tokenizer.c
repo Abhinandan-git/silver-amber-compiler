@@ -31,27 +31,13 @@ Token *compare_buffer(char *buffer, int length)
 	{
 		if (!isdigit(buffer[i]))
 		{
-			if (buffer[i] == '.' && !has_dot)
-			{
-				has_dot = 1;
-			}
-			else
-			{
-				is_numeric = 0;
-				break;
-			}
+			is_numeric = 0;
+			break;
 		}
 	}
 	if (is_numeric)
 	{
-		if (has_dot)
-		{
-			return create_token(TOKEN_FLOAT, buffer);
-		}
-		else
-		{
-			return create_token(TOKEN_INTEGER, buffer);
-		}
+		return create_token(TOKEN_INTEGER, buffer);
 	}
 
 	// Match keywords and condition operators
@@ -84,25 +70,23 @@ Token *compare_buffer(char *buffer, int length)
 
 	// Arithmetic and assignment operators
 	if (strcmp(buffer, "+") == 0)
-		return create_token(TOKEN_PLUS, buffer);
+		return create_token(TOKEN_PL, buffer);
 	if (strcmp(buffer, "-") == 0)
-		return create_token(TOKEN_MINUS, buffer);
+		return create_token(TOKEN_MI, buffer);
 	if (strcmp(buffer, "*") == 0)
-		return create_token(TOKEN_STAR, buffer);
+		return create_token(TOKEN_MU, buffer);
 	if (strcmp(buffer, "/") == 0)
-		return create_token(TOKEN_SLASH, buffer);
-	if (strcmp(buffer, "=") == 0)
-		return create_token(TOKEN_ASSIGN, buffer);
+		return create_token(TOKEN_DI, buffer);
 
 	// Punctuators
 	if (strcmp(buffer, "(") == 0)
-		return create_token(TOKEN_LPAREN, buffer);
+		return create_token(TOKEN_LP, buffer);
 	if (strcmp(buffer, ")") == 0)
-		return create_token(TOKEN_RPAREN, buffer);
+		return create_token(TOKEN_RP, buffer);
 	if (strcmp(buffer, "{") == 0)
-		return create_token(TOKEN_LBRACE, buffer);
+		return create_token(TOKEN_LB, buffer);
 	if (strcmp(buffer, "}") == 0)
-		return create_token(TOKEN_RBRACE, buffer);
+		return create_token(TOKEN_RB, buffer);
 
 	// Identifiers
 	if (isalpha(buffer[0]) || buffer[0] == '_')

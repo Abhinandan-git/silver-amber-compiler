@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "tables.h"
 #include "main.h"
 
 validity parser(char *input_file) {
@@ -11,7 +12,6 @@ validity parser(char *input_file) {
 
 	while (token->type != TOKEN_EOF)
 	{
-		Token *lookahead_token = peek_token();
 		
 		token = get_next_token();
 	}

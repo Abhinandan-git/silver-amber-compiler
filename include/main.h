@@ -24,45 +24,40 @@ typedef struct Macro
 
 typedef enum
 {
-	// Special
-	TOKEN_EOF = 0,
-	TOKEN_ERROR,
-
-	// Identifiers & Literals
-	TOKEN_IDENTIFIER,
-	TOKEN_INTEGER,
-	TOKEN_FLOAT,
-
 	// Keywords
-	TOKEN_FOR,
+	TOKEN_FOR = 0,
 	TOKEN_FROM,
 	TOKEN_TO,
 	TOKEN_BY,
+
 	TOKEN_IF,
+
 	TOKEN_FUNCTION,
 
-	// Condition Operators
-	TOKEN_LT, // lt
-	TOKEN_GT, // gt
-	TOKEN_LE, // le
-	TOKEN_GE, // ge
-	TOKEN_EQ, // eq
-	TOKEN_NE, // ne
+	TOKEN_LP,
+	TOKEN_RP,
+	TOKEN_LB,
+	TOKEN_RB,
 
-	// Arithmetic Operators
-	TOKEN_PLUS,	 // +
-	TOKEN_MINUS, // -
-	TOKEN_STAR,	 // *
-	TOKEN_SLASH, // /
+	TOKEN_LT,
+	TOKEN_GT,
+	TOKEN_LE,
+	TOKEN_GE,
+	TOKEN_EQ,
+	TOKEN_NE,
+	
+	TOKEN_PL,
+	TOKEN_MI,
+	TOKEN_MU,
+	TOKEN_DI,
+	TOKEN_MO,
+	
+	TOKEN_INTEGER,
+	TOKEN_LITERAL,
+	TOKEN_IDENTIFIER,
 
-	// Assignment
-	TOKEN_ASSIGN, // =
-
-	// Punctuation
-	TOKEN_LPAREN, // (
-	TOKEN_RPAREN, // )
-	TOKEN_LBRACE, // {
-	TOKEN_RBRACE, // }
+	TOKEN_EOF,
+	TOKEN_ERROR
 } TokenType;
 
 typedef struct Token
