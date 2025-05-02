@@ -49,8 +49,8 @@ To compile an `.ffo` source file:
 ```
 
 ## Development Roadmap
-- ✅ Implement Lexer (Tokenization)
-- ⏳ Implement LR(1) / LALR(1) Parser
+- ✅ Implement Lexer (Tokenisation)
+- ✅ Implement LR(1) / LALR(1) Parser
 - ⏳ Implement Abstract Syntax Tree (AST)
 - ⏳ Implement Semantic Analysis
 - ⏳ Code Generation
@@ -60,4 +60,4 @@ To compile an `.ffo` source file:
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
-This project is licensed under the GNU General Public license. See `LICENSE` for details.
+This project is licensed under the GNU General Public License. See `LICENSE` for details.
