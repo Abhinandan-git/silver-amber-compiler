@@ -1,5 +1,42 @@
 #include "tables.h"
 
+char *non_terminals_names[15] = {
+	"PROGRAM", "STATEMENTS", "STATEMENT", "FOR_LOOP", "IF_STMT", "FUNC_DEF", "FUNC_CALL", "ARGS", "BLOCK", "COND", "EXPR", "EXPR'", "OPRD", "COND_OPR", "OPR"
+};
+
+Productions productions[30] = {
+	{"STATEMENTS", {"STATEMENT", "STATEMENTS"}, 2},
+	{"STATEMENTS", {""}, 0},
+	{"STATEMENT", {"FOR_LOOP"}, 1},
+	{"STATEMENT", {"IF_STMT"}, 1},
+	{"STATEMENT", {"FUNC_DEF"}, 1},
+	{"STATEMENT", {"FUNC_CALL"}, 1},
+	{"FOR_LOOP", {"for", "(", "OPRD", "from", "INTEGER", "to", "INTEGER", "by", "INTEGER", ")", "BLOCK"}, 11},
+	{"IF_STMT", {"if", "(", "COND", ")", "BLOCK"}, 5},
+	{"FUNC_DEF", {"function", "IDENTIFIER", "(", "ARGS", ")", "BLOCK"}, 6},
+	{"FUNC_CALL", {"IDENTIFIER", "(", "ARGS", ")"}, 4},
+	{"ARGS", {"IDENTIFIER", "ARGS"}, 2},
+	{"ARGS", {""}, 0},
+	{"BLOCK", {"{", "STATEMENTS", "}"}, 3},
+	{"COND", {"EXPR", "COND_OPR", "EXPR"}, 3},
+	{"EXPR", {"OPRD", "EXPR'"}, 2},
+	{"EXPR'", {"OPR", "OPRD", "EXPR'"}, 3},
+	{"EXPR'", {""}, 0},
+	{"OPRD", {"LITERAL"}, 1},
+	{"OPRD", {"IDENTIFIER"}, 1},
+	{"COND_OPR", {"lt"}, 1},
+	{"COND_OPR", {"gt"}, 1},
+	{"COND_OPR", {"le"}, 1},
+	{"COND_OPR", {"ge"}, 1},
+	{"COND_OPR", {"eq"}, 1},
+	{"COND_OPR", {"ne"}, 1},
+	{"OPR", {"+"}, 1},
+	{"OPR", {"-"}, 1},
+	{"OPR", {"*"}, 1},
+	{"OPR", {"/"}, 1},
+	{"OPR", {"%"}, 1},
+};
+
 int state_table[104][15] = {
 	{-1, 1, 2, 3, 4, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1},
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -213,3 +250,12 @@ char *action_table[104][25] = {
 	{"err", "err", "err", "err", "err", "err", "err", "err", "s92", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err"},
 	{"r7", "err", "err", "err", "r7", "r7", "err", "err", "err", "r7", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "err", "r7", "err"}
 };
+
+int get_non_terminal_index(char *non_terminal) {
+	for (int idx = 0; idx < 15; idx++) {
+		if (sizeof(non_terminals_names[idx]) == sizeof(non_terminal) && strcmp(non_terminals_names[idx], non_terminal) == 0) {
+			return idx;
+		}
+	}
+	return -1;
+}

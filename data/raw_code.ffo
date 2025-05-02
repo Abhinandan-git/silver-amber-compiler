@@ -1,7 +1,2 @@
-for (literal from 9 to 15) {
-	variable
-}
-
-for (int i = 0; i < n; i++) {
-	variable
+for (literal from 9 to 15 by 4) {
 }

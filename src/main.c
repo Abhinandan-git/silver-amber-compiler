@@ -29,17 +29,7 @@ int main(int argc, char *argv[])
 		return INCOMPLETE;
 	}
 
-	
-	Token *token = get_next_token();
-	while (token->type != TOKEN_EOF)
-	{
-		printf("TOKEN TYPE: %d\tLEXEME: %s\n", token->type, token->value);
-		free(token);
-		token = get_next_token();
-	}
-	free(token);
-
-	free_lexer();
+	parser(preprocessed_file);
 
 	return COMPLETE;
 }
