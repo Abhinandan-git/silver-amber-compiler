@@ -6,6 +6,10 @@
 
 static char *file_buffer = NULL; // Pointer to hold file contents
 
+// Declare static pointers without initializing
+static char *lexeme_begin = NULL;
+static char *forward = NULL;
+
 validity init_lexer(const char *input_file_name)
 {
 	// Open input file
@@ -40,16 +44,24 @@ validity init_lexer(const char *input_file_name)
 
 Token *get_next_token()
 {
-	// Declare static pointers without initializing
-	static char *lexeme_begin = NULL;
-	static char *forward = NULL;
+	Token *token = peek_token();
 
+	// Move lexeme_begin to next token
+	lexeme_begin = forward;
+
+	return token;
+}
+
+Token *peek_token()
+{
 	// Initialize them only on the first call
 	if (lexeme_begin == NULL || forward == NULL)
 	{
 		lexeme_begin = file_buffer;
 		forward = file_buffer;
 	}
+
+	forward = lexeme_begin; // Mark start of token
 
 	// Skip whitespace
 	while (*forward && isspace(*forward))
@@ -98,9 +110,6 @@ Token *get_next_token()
 
 	// Compare and generate token
 	Token *token = (Token *)compare_buffer(buffer, length);
-
-	// Move lexeme_begin to next token
-	lexeme_begin = forward;
 
 	return token;
 }

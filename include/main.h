@@ -24,13 +24,39 @@ typedef struct Macro
 
 typedef enum
 {
-	TOKEN_EOF = 0,
+	// Keywords
+	TOKEN_FOR = 0,
+	TOKEN_FROM,
+	TOKEN_TO,
+	TOKEN_BY,
+
+	TOKEN_IF,
+
+	TOKEN_FUNCTION,
+
+	TOKEN_LP,
+	TOKEN_RP,
+	TOKEN_LB,
+	TOKEN_RB,
+
+	TOKEN_LT,
+	TOKEN_GT,
+	TOKEN_LE,
+	TOKEN_GE,
+	TOKEN_EQ,
+	TOKEN_NE,
+	
+	TOKEN_PL,
+	TOKEN_MI,
+	TOKEN_MU,
+	TOKEN_DI,
+	TOKEN_MO,
+	
+	TOKEN_INTEGER,
+	TOKEN_LITERAL,
 	TOKEN_IDENTIFIER,
-	TOKEN_NUMBER,
-	TOKEN_STRING,
-	TOKEN_KEYWORD,
-	TOKEN_OPERATOR,
-	TOKEN_PUNCTUATOR,
+
+	TOKEN_EOF,
 	TOKEN_ERROR
 } TokenType;
 
@@ -40,16 +66,10 @@ typedef struct Token
 	char *value;
 } Token;
 
-typedef struct
-{
-	int state;
-	Token token;
-} StackElement;
-
 int main();
 
 #include "preprocessor.h"
-#include "parser.h"
+#include "lexer.h"
 #include "tokenizer.h"
 #include "macro.h"
 
