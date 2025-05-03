@@ -94,7 +94,7 @@ void print_state_stack() {
 // Perform a grammar reduction based on the specified rule number
 void reduce_by_rule(int rule_number)
 {
-	if (rule_number < 0 || rule_number >= 30)
+	if (rule_number < 0 || rule_number >= 34)
 	{
 		fprintf(stderr, "Invalid rule number: %d\n", rule_number);
 		exit(EXIT_FAILURE);

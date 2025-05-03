@@ -37,7 +37,7 @@ Token *compare_buffer(char *buffer, int length)
 	}
 	if (is_numeric)
 	{
-		return create_token(TOKEN_INTEGER, buffer);
+		return create_token(TOKEN_LITERAL, buffer);
 	}
 
 	// Match keywords and condition operators
@@ -79,6 +79,8 @@ Token *compare_buffer(char *buffer, int length)
 		return create_token(TOKEN_DI, buffer);
 
 	// Punctuators
+	if (strcmp(buffer, "=") == 0)
+		return create_token(TOKEN_AS, buffer);
 	if (strcmp(buffer, "(") == 0)
 		return create_token(TOKEN_LP, buffer);
 	if (strcmp(buffer, ")") == 0)

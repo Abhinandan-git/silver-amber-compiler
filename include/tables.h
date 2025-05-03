@@ -12,9 +12,9 @@ typedef struct
 	int production_size;
 } Productions;
 
-extern char *non_terminals[15];
-extern Productions productions[30];
-extern int state_table[][15];
+extern char *non_terminals[16];
+extern Productions productions[34];
+extern int state_table[][16];
 extern char *action_table[][25];
 
 int get_non_terminal_index(char *);
