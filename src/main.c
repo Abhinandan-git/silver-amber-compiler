@@ -1,8 +1,8 @@
-#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "main.h"
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +29,15 @@ int main(int argc, char *argv[])
 		return INCOMPLETE;
 	}
 
+	
 	parser(preprocessed_file);
+	
+	ASTNode *ast_root = get_ast_root();
+	printf("\n=== Abstract Syntax Tree ===\n");
+	print_ast(ast_root, 0);
+	printf("============================\n");
+
+	free_ast(ast_root);
 
 	return COMPLETE;
 }

@@ -74,5 +74,6 @@ int main();
 #include "tokenizer.h"
 #include "macro.h"
 #include "parser.h"
+#include "ast.h"
 
 #endif

@@ -51,7 +51,7 @@ To compile an `.ffo` source file:
 ## Development Roadmap
 - ✅ Implement Lexer (Tokenisation)
 - ✅ Implement LR(1) / LALR(1) Parser
-- ⏳ Implement Abstract Syntax Tree (AST)
+- ✅ Implement Abstract Syntax Tree (AST)
 - ⏳ Implement Semantic Analysis
 - ⏳ Code Generation
 - ⏳ Optimization & Testing
