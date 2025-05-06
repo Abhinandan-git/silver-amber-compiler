@@ -1,2 +1,6 @@
-for (literal from 9 to 15 by 4) {
+
+sum = 0
+for (i from 1 to 50 by 1) {
+	sum = sum + i
 }
+print(sum)

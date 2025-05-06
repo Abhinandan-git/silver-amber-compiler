@@ -52,7 +52,8 @@ typedef enum
 	TOKEN_DI,
 	TOKEN_MO,
 	
-	TOKEN_INTEGER,
+	TOKEN_AS,
+
 	TOKEN_LITERAL,
 	TOKEN_IDENTIFIER,
 
@@ -73,5 +74,6 @@ int main();
 #include "tokenizer.h"
 #include "macro.h"
 #include "parser.h"
+#include "ast.h"
 
 #endif

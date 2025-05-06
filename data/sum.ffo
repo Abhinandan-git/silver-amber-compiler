@@ -1,0 +1,7 @@
+/- IDENTIFIER = LITERAL for ( IDENTIFIER from IDENTIFIER to IDENTIFIER by LITERAL ) { IDENTIFIER = IDENTIFIER + IDENTIFIER } IDENTIFIER ( IDENTIFIER )
+
+sum = 0
+for (i from 1 to 50 by 1) {
+	sum = sum + i
+}
+print(sum)
