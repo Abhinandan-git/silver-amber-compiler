@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "tables.h"
 #include "main.h"
+#include "ast.h"
 
 // Stack to store parser states
 int state_stack[STACK_SIZE] = {0};
@@ -9,6 +10,8 @@ static int state_top = -1;
 // Stack to store lexemes (strings representing parsed tokens)
 char *lexeme_stack[STACK_SIZE] = {NULL};
 static int lexeme_top = -1;
+
+ASTNode *get_ast_root();
 
 // Push a parser state onto the state stack
 void push_state(const int state)
@@ -77,40 +80,40 @@ void pop_lexeme()
 	lexeme_stack[lexeme_top--] = NULL;
 }
 
-void print_lexeme_stack() {
-	for (int idx = 0; idx <= lexeme_top; idx++) {
+void print_lexeme_stack()
+{
+	for (int idx = 0; idx <= lexeme_top; idx++)
+	{
 		printf("%s\t", lexeme_stack[idx]);
 	}
 	printf("\n");
 }
 
-void print_state_stack() {
-	for (int idx = 0; idx <= state_top; idx++) {
+void print_state_stack()
+{
+	for (int idx = 0; idx <= state_top; idx++)
+	{
 		printf("%d\t", state_stack[idx]);
 	}
 	printf("\n");
 }
 
-// Perform a grammar reduction based on the specified rule number
 void reduce_by_rule(int rule_number)
 {
-	if (rule_number < 0 || rule_number >= 30)
+	if (rule_number < 0 || rule_number >= 34)
 	{
 		fprintf(stderr, "Invalid rule number: %d\n", rule_number);
 		exit(EXIT_FAILURE);
 	}
 
-	// Get the number of symbols to pop from the stack for this rule
 	int number_of_productions = productions[rule_number].production_size;
 
-	// Pop the corresponding number of lexemes and states
 	for (int idx = 0; idx < number_of_productions; idx++)
 	{
 		pop_lexeme();
 		pop_state();
 	}
 
-	// Get the non-terminal resulting from the reduction
 	char *non_terminal = productions[rule_number].non_terminal;
 	int non_terminal_index = get_non_terminal_index(non_terminal);
 	if (non_terminal_index < 0)
@@ -119,10 +122,9 @@ void reduce_by_rule(int rule_number)
 		exit(EXIT_FAILURE);
 	}
 
-	// Push the resulting non-terminal onto the lexeme stack
 	push_lexeme(non_terminal);
+	reduce_ast(rule_number);
 
-	// Push the corresponding state from the state transition table
 	int next_state = state_table[peek_state()][non_terminal_index];
 	push_state(next_state);
 }
@@ -156,7 +158,6 @@ validity parser(const char *input_file)
 		case ACTION_ACCEPT:
 			// Parsing successful
 			free_lexer();
-			printf("ACCEPT");
 			return COMPLETE;
 
 		case ACTION_SHIFT:
@@ -165,6 +166,10 @@ validity parser(const char *input_file)
 			int next_state = atoi(action + 1);
 			push_state(next_state);
 			push_lexeme(token->value);
+
+			ASTNode *leaf = new_ast_node(token->value, 0, NULL);
+			push_ast(leaf);
+
 			token = get_next_token();
 			break;
 		}
@@ -186,8 +191,8 @@ validity parser(const char *input_file)
 		}
 
 		// Debug: print current state of stacks
-		print_state_stack();
-		print_lexeme_stack();
+		// print_state_stack();
+		// print_lexeme_stack();
 	}
 
 	// Should not reach here under normal conditions
