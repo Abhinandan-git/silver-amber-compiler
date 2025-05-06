@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "main.h"
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		input_file = "data/input.ffo";
+		input_file = "data/factorial.ffo";
 	}
 
 	if (preprocessor(input_file, preprocessed_file) == INCOMPLETE)
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
 	
 	ASTNode *ast_root = get_ast_root();
 	printf("\n=== Abstract Syntax Tree ===\n");
-	print_ast(ast_root, 0);
+	print_ast(ast_root, "", 1);
 	printf("============================\n");
 
 	free_ast(ast_root);

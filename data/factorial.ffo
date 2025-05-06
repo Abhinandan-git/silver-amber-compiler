@@ -1,0 +1,6 @@
+fact = 0
+input(n)
+for (i from 1 to n by 1) {
+	fact = fact * i
+}
+print(fact)
