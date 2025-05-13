@@ -4,7 +4,7 @@ $$
     [\text{Stmt}] &\to
     \begin{cases}
         \text{exit}([\text{Expr}]); \\
-        \text{let}\space\text{ident} = [\text{Expr}]; \\
+        \text{variable}\space\text{ident} = [\text{Expr}]; \\
         \text{ident} = \text{[Expr]}; \\
         \text{if} ([\text{Expr}])[\text{Scope}]\text{[IfPred]}\\
         [\text{Scope}]
@@ -12,7 +12,6 @@ $$
     \text{[Scope]} &\to \{[\text{Stmt}]^*\} \\
     \text{[IfPred]} &\to 
     \begin{cases}
-        \text{elif}(\text{[Expr]})\text{[Scope]}\text{[IfPred]} \\
         \text{else}\text{[Scope]} \\
         \epsilon
     \end{cases} \\
