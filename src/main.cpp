@@ -29,11 +29,11 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// Move the content into the tokenizer
-	Tokenizer tokenizer(std::move(contents)); // Move the pointer to class contructor
+	Tokenizer tokenizer(std::move(contents));         // Move the pointer to class contructor
 	std::vector<Token> tokens = tokenizer.tokenize(); // Returns tokens based on the file
 
 	// Move the tokens generated into the parser
-	Parser parser(std::move(tokens)); // Move tokens pointer to class constructor
+	Parser parser(std::move(tokens));                   // Move tokens pointer to class constructor
 	std::optional<NodeExit> tree_root = parser.parse(); // Null in case of an error
 
 	// Check for error in the tree
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]) {
 	{
 		// Local-scoped output assembly file
 		std::fstream file("out.asm", std::ios::out); // Open file for writing
-		file << generator.generate(); // Generate intermediate code
+		file << generator.generate();                // Generate intermediate code
 	}
 
 	return EXIT_SUCCESS; // Macro
