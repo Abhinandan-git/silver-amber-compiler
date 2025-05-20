@@ -12,7 +12,10 @@ enum class TokenType {
 	t_integer_literal,
 	t_semi_colon,
 	t_open_parenthesis,
-	t_close_parenthesis
+	t_close_parenthesis,
+	t_identifier,
+	t_variable,
+	t_equal
 };
 
 struct Token {
@@ -38,9 +41,14 @@ public:
 					tokens.push_back({.type = TokenType::t_exit});
 					buffer.clear();
 					continue;
+				} else if (buffer == "variable") {
+					tokens.push_back({.type = TokenType::t_variable});
+					buffer.clear();
+					continue;
 				} else {
-					std::cerr << "[TOKENIZATION] Messed up!" << std::endl;
-					exit(EXIT_FAILURE);
+					tokens.push_back({.type = TokenType::t_identifier, .value = buffer});
+					buffer.clear();
+					continue;
 				}
 			} else if (std::isdigit(peek().value())) {
 				buffer.push_back(consume());
@@ -53,6 +61,10 @@ public:
 			} else if (peek().value() == ';') {
 				consume();
 				tokens.push_back({.type = TokenType::t_semi_colon});
+				continue;
+			} else if (peek().value() == '=') {
+				consume();
+				tokens.push_back({.type = TokenType::t_equal});
 				continue;
 			} else if (peek().value() == '(') {
 				consume();

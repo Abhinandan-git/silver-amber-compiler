@@ -4,6 +4,8 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <variant>
+#include <unordered_map>
 
 #include "generator.hpp"
 
@@ -33,21 +35,21 @@ int main(int argc, char const *argv[]) {
 	std::vector<Token> tokens = tokenizer.tokenize(); // Returns tokens based on the file
 
 	// Move the tokens generated into the parser
-	Parser parser(std::move(tokens));                   // Move tokens pointer to class constructor
-	std::optional<NodeExit> tree_root = parser.parse(); // Null in case of an error
+	Parser parser(std::move(tokens));                              // Move tokens pointer to class constructor
+	std::optional<NodeProgram> program = parser.parse_program(); // Null in case of an error
 
 	// Check for error in the tree
-	if (!tree_root.has_value()) {
-		std::cerr << "[MAIN] No exit (node) found" << std::endl;
+	if (!program.has_value()) {
+		std::cerr << "[MAIN] Invalid Program" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	// Pass the Abstract Syntax Tree generated into the code generator
-	Generator generator(tree_root.value());	
+	Generator generator(program.value());	
 	{
 		// Local-scoped output assembly file
 		std::fstream file("out.asm", std::ios::out); // Open file for writing
-		file << generator.generate();                // Generate intermediate code
+		file << generator.generate_program();        // Generate intermediate code
 	}
 
 	return EXIT_SUCCESS; // Macro
