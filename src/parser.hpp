@@ -14,7 +14,7 @@ public:
 	inline explicit Parser(std::vector<Token> tokens) : m_tokens(std::move(tokens)) {}
 
 	inline std::optional<NodeExpression> parse_expression() {
-		if (peek().has_value() && peek().value().type == TokenType::t_int_literal) {
+		if (peek().has_value() && peek().value().type == TokenType::t_integer_literal) {
 			return NodeExpression{.int_literal = consume()};
 		} else {
 			return {};
@@ -24,7 +24,8 @@ public:
 	inline std::optional<NodeExit> parse() {
 		std::optional<NodeExit> exit_node;
 		while (peek().has_value()) {
-			if (peek().value().type == TokenType::t_exit) {
+			if (peek().value().type == TokenType::t_exit && peek(1).has_value() && peek(1).value().type == TokenType::t_open_parenthesis) {
+				consume();
 				consume();
 				if (std::optional<NodeExpression> node_expression = parse_expression()) {
 					exit_node = NodeExit({.expression = node_expression.value()});
@@ -32,10 +33,16 @@ public:
 					std::cerr << "[PARSER] Invalid expression" << std::endl;
 					exit(EXIT_FAILURE);
 				}
+				if (peek().has_value() && peek().value().type == TokenType::t_close_parenthesis) {
+					consume();
+				} else {
+					std::cerr << "[PARSER] Expected `)`" << std::endl;
+					exit(EXIT_FAILURE);
+				}
 				if (peek().has_value() && peek().value().type == TokenType::t_semi_colon) {
 					consume();
 				} else {
-					std::cerr << "[PARSER] Invalid expression" << std::endl;
+					std::cerr << "[PARSER] Expected `;`" << std::endl;
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -46,11 +53,11 @@ public:
 	}
 
 private:
-	[[nodiscard]] inline std::optional<Token> peek(int ahead = 1) const {
-		if (m_current_index + ahead > m_tokens.size()) {
+	[[nodiscard]] inline std::optional<Token> peek(int offset = 0) const {
+		if (m_current_index + offset >= m_tokens.size()) {
 			return {};
 		} else {
-			return m_tokens.at(m_current_index);
+			return m_tokens.at(m_current_index + offset);
 		}
 	}
 
