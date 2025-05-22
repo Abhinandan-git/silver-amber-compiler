@@ -1,5 +1,6 @@
 #pragma once
 
+#include "arena.hpp"
 #include "tokenization.hpp"
 
 struct NodeExpressionIntegerLiteral {
@@ -8,44 +9,64 @@ struct NodeExpressionIntegerLiteral {
 struct NodeExpressionIdentifier {
 	Token identifier;
 };
+struct NodeExpression;
+struct NodeBinaryExpressionAddition {
+	NodeExpression *lhs;
+	NodeExpression *rhs;
+};
+struct NodeBinaryExpressionMultiplication {
+	NodeExpression *lhs;
+	NodeExpression *rhs;
+};
+struct NodeBinaryExpression {
+	std::variant<NodeBinaryExpressionAddition *, NodeBinaryExpressionMultiplication *> var;
+};
 struct NodeExpression {
-	std::variant<NodeExpressionIntegerLiteral, NodeExpressionIdentifier> var;
+	std::variant<NodeExpressionIntegerLiteral*, NodeExpressionIdentifier*, NodeBinaryExpression *> var;
 };
 struct NodeStatementExit {
-	NodeExpression expression;
+	NodeExpression *expression;
 };
 struct NodeStatementVariable {
 	Token identifier;
-	NodeExpression expression;
+	NodeExpression *expression;
 };
 struct NodeStatement {
-	std::variant<NodeStatementExit, NodeStatementVariable> var;
+	std::variant<NodeStatementExit *, NodeStatementVariable *> var;
 };
 struct NodeProgram {
-	std::vector<NodeStatement> statements;
+	std::vector<NodeStatement *> statements;
 };
 
 class Parser {
 public:
-	inline explicit Parser(std::vector<Token> tokens) : m_tokens(std::move(tokens)) {}
+	inline explicit Parser(std::vector<Token> tokens) : m_tokens(std::move(tokens)), m_allocator(1024 * 1024 * 4) {}
 
-	inline std::optional<NodeExpression> parse_expression() {
+	inline std::optional<NodeExpression*> parse_expression() {
 		if (peek().has_value() && peek().value().type == TokenType::t_integer_literal) {
-			return NodeExpression{.var = NodeExpressionIntegerLiteral{.integer_literal = consume()}};
+			auto node_expression_integer_literal = m_allocator.allocate<NodeExpressionIntegerLiteral>();
+			node_expression_integer_literal->integer_literal = consume();
+			auto node_expression = m_allocator.allocate<NodeExpression>();
+			node_expression->var = node_expression_integer_literal;
+			return node_expression;
 		} else if (peek().has_value() && peek().value().type == TokenType::t_identifier) {
-			return NodeExpression{.var = NodeExpressionIdentifier{.identifier = consume()}};
+			auto node_expression_identifier = m_allocator.allocate<NodeExpressionIdentifier>();
+			node_expression_identifier->identifier = consume();
+			auto node_expression = m_allocator.allocate<NodeExpression>();
+			node_expression->var = node_expression_identifier;
+			return node_expression;
 		} else {
 			return {};
 		}
 	}
 
-	inline std::optional<NodeStatement> parse_statement() {
+	inline std::optional<NodeStatement *> parse_statement() {
 		if (peek().value().type == TokenType::t_exit && peek(1).has_value() && peek(1).value().type == TokenType::t_open_parenthesis) {
 			consume();
 			consume();
-			NodeStatementExit statement_exit;
-			if (std::optional<NodeExpression> node_expression = parse_expression()) {
-				statement_exit = {.expression = node_expression.value()};
+			auto node_statement_exit = m_allocator.allocate<NodeStatementExit>();
+			if (auto node_expression = parse_expression()) {
+				node_statement_exit->expression = node_expression.value();
 			} else {
 				std::cerr << "[PARSER] Invalid expression" << std::endl;
 				exit(EXIT_FAILURE);
@@ -62,13 +83,16 @@ public:
 				std::cerr << "[PARSER] Expected `;`" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			return NodeStatement {.var = statement_exit};
+			auto node_statement = m_allocator.allocate<NodeStatement>();
+			node_statement->var = node_statement_exit;
+			return node_statement;
 		} else if (peek().has_value() && peek().value().type == TokenType::t_variable && peek(1).has_value() && peek(1).value().type == TokenType::t_identifier && peek(2).has_value() && peek(2).value().type == TokenType::t_equal) {
 			consume();
-			NodeStatementVariable statement_variable = NodeStatementVariable{.identifier = consume()};
+			auto node_statement_variable = m_allocator.allocate<NodeStatementVariable>();
+			node_statement_variable->identifier = consume();
 			consume();
 			if (auto expression = parse_expression()) {
-				statement_variable.expression = expression.value();
+				node_statement_variable->expression = expression.value();
 			} else {
 				std::cerr << "[PARSER] Invalid expression" << std::endl;
 				exit(EXIT_FAILURE);
@@ -79,7 +103,9 @@ public:
 				std::cerr << "[PARSER] Expected `;`" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			return NodeStatement{.var = statement_variable};
+			auto node_statement = m_allocator.allocate<NodeStatement>();
+			node_statement->var = node_statement_variable;
+			return node_statement;
 		} else {
 			return {};
 		}
@@ -113,4 +139,5 @@ private:
 
 	const std::vector<Token> m_tokens;
 	size_t m_current_index = 0;
+	ArenaAllocator m_allocator;
 };
