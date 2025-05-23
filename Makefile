@@ -1,7 +1,19 @@
-cmake_minimum_required(VERSION 3.20)
+# Compiler
+CXX := g++
+CXXFLAGS := -std=c++20 -Wall -Wextra -O2
 
-project(hydrogen)
+# Source and target
+SRC := src/main.cpp
+TARGET := sacompiler
 
-set(CMAKE_CXX_STANDARD 20)
+# Default rule
+all: $(TARGET)
 
-add_executable(sacompiler src/main.cpp)
+$(TARGET): $(SRC) 
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(TARGET)
+
+# Clean rule
+clean:
+	del /f $(TARGET).exe
+
+.PHONY: all clean

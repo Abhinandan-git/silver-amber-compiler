@@ -10,7 +10,7 @@ $$
         [\text{Scope}]
     \end{cases} \\
     \text{[Scope]} &\to \{[\text{Stmt}]^*\} \\
-    \text{[IfPred]} &\to 
+    \text{[IfPred]} &\to
     \begin{cases}
         \text{else}\text{[Scope]} \\
         \epsilon
@@ -26,7 +26,7 @@ $$
         [\text{Expr}] / [\text{Expr}] & \text{prec} = 1 \\
         [\text{Expr}] + [\text{Expr}] & \text{prec} = 0 \\
         [\text{Expr}] - [\text{Expr}] & \text{prec} = 0 \\
-    \end{cases} \\ 
+    \end{cases} \\
     [\text{Term}] &\to
     \begin{cases}
         \text{int\_lit} \\

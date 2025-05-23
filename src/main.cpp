@@ -35,7 +35,7 @@ int main(int argc, char const *argv[]) {
 	std::vector<Token> tokens = tokenizer.tokenize(); // Returns tokens based on the file
 
 	// Move the tokens generated into the parser
-	Parser parser(std::move(tokens));                              // Move tokens pointer to class constructor
+	Parser parser(std::move(tokens));                            // Move tokens pointer to class constructor
 	std::optional<NodeProgram> program = parser.parse_program(); // Null in case of an error
 
 	// Check for error in the tree
