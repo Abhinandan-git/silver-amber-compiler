@@ -26,12 +26,61 @@ public:
 				offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_location - 1) * 8 << "]";
 				gen->push(offset.str());
 			}
+
+			void operator ()(const NodeTermParenthesis* term_parenthesis) {
+				gen->generate_expression(term_parenthesis->expression);
+			}
 		};
 
 		TermVisitor visitor({.gen = this});
 		std::visit(visitor, term->var);
 	}
 
+	void generate_binary_expression(const NodeBinaryExpression* binary_expression) {
+		struct BinaryExpressionVisitor {
+			Generator* gen;
+
+			void operator ()(const NodeBinaryExpressionAddition *add) const {
+				gen->generate_expression(add->rhs);
+				gen->generate_expression(add->lhs);
+				gen->pop("rax");
+				gen->pop("rbx");
+				gen->m_output << "    add rax, rbx\n";
+				gen->push("rax");
+			}
+
+			void operator ()(const NodeBinaryExpressionSubtraction *sub) const {
+				gen->generate_expression(sub->rhs);
+				gen->generate_expression(sub->lhs);
+				gen->pop("rax");
+				gen->pop("rbx");
+				gen->m_output << "    sub rax, rbx\n";
+				gen->push("rax");
+			}
+
+			void operator ()(const NodeBinaryExpressionMultiplication *multi) const {
+				gen->generate_expression(multi->rhs);
+				gen->generate_expression(multi->lhs);
+				gen->pop("rax");
+				gen->pop("rbx");
+				gen->m_output << "    mul rbx\n";
+				gen->push("rax");
+			}
+
+			void operator ()(const NodeBinaryExpressionDivision *div) const {
+				gen->generate_expression(div->rhs);
+				gen->generate_expression(div->lhs);
+				gen->pop("rax");
+				gen->pop("rbx");
+				gen->m_output << "    div rbx\n";
+				gen->push("rax");
+			}
+		};
+		
+		BinaryExpressionVisitor visitor({.gen = this});
+		std::visit(visitor, binary_expression->var);
+	}
+	
 	inline void generate_expression(const NodeExpression* expression) {
 		struct ExpressionVisitor {
 			Generator* gen;
@@ -41,12 +90,7 @@ public:
 			}
 
 			void operator ()(const NodeBinaryExpression* binary_expression) const {
-				gen->generate_expression(binary_expression->add->lhs);
-				gen->generate_expression(binary_expression->add->rhs);
-				gen->pop("rax");
-				gen->pop("rbx");
-				gen->m_output << "    add rax, rbx\n";
-				gen->push("rax");
+				gen->generate_binary_expression(binary_expression);
 			}
 		};
 

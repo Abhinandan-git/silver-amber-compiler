@@ -10,20 +10,30 @@ struct NodeTermIdentifier {
 	Token identifier;
 };
 struct NodeExpression;
+struct NodeTermParenthesis {
+	NodeExpression *expression;
+};
 struct NodeBinaryExpressionAddition {
 	NodeExpression *lhs;
 	NodeExpression *rhs;
 };
-// struct NodeBinaryExpressionMultiplication {
-// 	NodeExpression *lhs;
-// 	NodeExpression *rhs;
-// };
+struct NodeBinaryExpressionMultiplication {
+	NodeExpression *lhs;
+	NodeExpression *rhs;
+};
+struct NodeBinaryExpressionSubtraction {
+	NodeExpression *lhs;
+	NodeExpression *rhs;
+};
+struct NodeBinaryExpressionDivision {
+	NodeExpression *lhs;
+	NodeExpression *rhs;
+};
 struct NodeBinaryExpression {
-	// std::variant<NodeBinaryExpressionAddition *, NodeBinaryExpressionMultiplication *> var;
-	NodeBinaryExpressionAddition* add;
+	std::variant<NodeBinaryExpressionAddition *, NodeBinaryExpressionSubtraction *, NodeBinaryExpressionMultiplication *, NodeBinaryExpressionDivision *> var;
 };
 struct NodeTerm {
-	std::variant<NodeTermIntegerLiteral *, NodeTermIdentifier *> var;
+	std::variant<NodeTermIntegerLiteral *, NodeTermIdentifier *, NodeTermParenthesis *> var;
 };
 struct NodeExpression {
 	std::variant<NodeTerm *, NodeBinaryExpression *> var;
@@ -59,37 +69,85 @@ public:
 			auto node_term = m_allocator.allocate<NodeTerm>();
 			node_term->var = node_term_identifier;
 			return node_term;
+		} else if (auto open_parenthesis = try_consume(TokenType::t_open_parenthesis)) {
+			auto expression = parse_expression();
+			if (!expression.has_value()) {
+				std::cerr << "Expected expression" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			try_consume(TokenType::t_close_parenthesis, "Expected `)`");
+			auto term_parenthesis = m_allocator.allocate<NodeTermParenthesis>();
+			term_parenthesis->expression = expression.value();
+			auto term = m_allocator.allocate<NodeTerm>();
+			term->var = term_parenthesis;
+			return term;
 		} else {
 			return {};
 		}
 	}
 
-	inline std::optional<NodeExpression*> parse_expression() {
-		if (auto term = parse_term()) {
-			if (try_consume(TokenType::t_plus).has_value()) {
-				auto binary_expression = m_allocator.allocate<NodeBinaryExpression>();
-				auto binary_expression_addition = m_allocator.allocate<NodeBinaryExpressionAddition>();
-				auto lhs_expression = m_allocator.allocate<NodeExpression>();
-				lhs_expression->var = term.value();
-				binary_expression_addition->lhs = lhs_expression;
-				if (auto rhs = parse_expression()) {
-					binary_expression_addition->rhs = rhs.value();
-					binary_expression->add = binary_expression_addition;
-					auto expression = m_allocator.allocate<NodeExpression>();
-					expression->var = binary_expression;
-					return expression;
-				} else {
-					std::cerr << "[PARSER] Invalid operator" << std::endl;
-					exit(EXIT_FAILURE);
-				}
-			} else {
-				auto expression = m_allocator.allocate<NodeExpression>();
-				expression->var = term.value();
-				return expression;
-			}
-		} else {
+	inline std::optional<NodeExpression*> parse_expression(int minimum_precedence = 0) {
+		std::optional<NodeTerm *> term_lhs = parse_term();
+		if (!term_lhs.has_value()) {
 			return {};
 		}
+
+		auto expression_lhs = m_allocator.allocate<NodeExpression>();
+		expression_lhs->var = term_lhs.value();
+
+		while (true) {
+			std::optional<Token> current_token = peek();
+			std::optional<int> precedence;
+			if (current_token.has_value()) {
+				precedence = binary_precedence(current_token->type);
+				if (!precedence.has_value() || precedence < minimum_precedence) {
+					break;
+				}
+			} else {
+				break;
+			}
+			
+			Token op = consume();
+			int next_minimum_precedence = precedence.value() + 1;
+			auto expression_rhs = parse_expression(next_minimum_precedence);
+			if (!expression_rhs.has_value()) {
+				std::cerr << "Unable to parse expression" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
+			auto expression = m_allocator.allocate<NodeBinaryExpression>();
+			auto expression_lhs_2 = m_allocator.allocate<NodeExpression>();
+
+			if (op.type == TokenType::t_plus) {
+				auto add = m_allocator.allocate<NodeBinaryExpressionAddition>();
+				expression_lhs_2->var = expression_lhs->var;
+				add->lhs = expression_lhs_2;
+				add->rhs = expression_rhs.value();
+				expression->var = add;
+			} else if (op.type == TokenType::t_star) {
+				auto multi = m_allocator.allocate<NodeBinaryExpressionMultiplication>();
+				expression_lhs_2->var = expression_lhs->var;
+				multi->lhs = expression_lhs_2;
+				multi->rhs = expression_rhs.value();
+				expression->var = multi;
+			} else if (op.type == TokenType::t_minus) {
+				auto sub = m_allocator.allocate<NodeBinaryExpressionSubtraction>();
+				expression_lhs_2->var = expression_lhs->var;
+				sub->lhs = expression_lhs_2;
+				sub->rhs = expression_rhs.value();
+				expression->var = sub;
+			} else if (op.type == TokenType::t_slash) {
+				auto div = m_allocator.allocate<NodeBinaryExpressionDivision>();
+				expression_lhs_2->var = expression_lhs->var;
+				div->lhs = expression_lhs_2;
+				div->rhs = expression_rhs.value();
+				expression->var = div;
+			}
+
+			expression_lhs->var = expression;
+		}
+
+		return expression_lhs;
 	}
 
 	inline std::optional<NodeStatement *> parse_statement() {

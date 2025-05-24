@@ -16,8 +16,37 @@ enum class TokenType {
 	t_identifier,
 	t_variable,
 	t_equal,
-	t_plus
+	t_plus,
+	t_star,
+	t_minus,
+	t_slash
 };
+
+bool is_binary_operator(TokenType type) {
+	switch (type)
+	{
+	case TokenType::t_plus:
+	case TokenType::t_star:
+		return true;
+	
+	default:
+		return false;
+	}
+}
+
+std::optional<int> binary_precedence(TokenType type) {
+	switch (type)
+	{
+	case TokenType::t_plus:
+	case TokenType::t_minus:
+		return 0;
+	case TokenType::t_star:
+	case TokenType::t_slash:
+		return 1;
+	default:
+		return {};
+	}
+}
 
 struct Token {
 	TokenType type;
@@ -41,15 +70,12 @@ public:
 				if (buffer == "exit") {
 					tokens.push_back({.type = TokenType::t_exit});
 					buffer.clear();
-					continue;
 				} else if (buffer == "variable") {
 					tokens.push_back({.type = TokenType::t_variable});
 					buffer.clear();
-					continue;
 				} else {
 					tokens.push_back({.type = TokenType::t_identifier, .value = buffer});
 					buffer.clear();
-					continue;
 				}
 			} else if (std::isdigit(peek().value())) {
 				buffer.push_back(consume());
@@ -58,30 +84,32 @@ public:
 				}
 				tokens.push_back({.type = TokenType::t_integer_literal, .value = buffer});
 				buffer.clear();
-				continue;
 			} else if (peek().value() == ';') {
 				consume();
 				tokens.push_back({.type = TokenType::t_semi_colon});
-				continue;
 			} else if (peek().value() == '=') {
 				consume();
 				tokens.push_back({.type = TokenType::t_equal});
-				continue;
 			} else if (peek().value() == '(') {
 				consume();
 				tokens.push_back({.type = TokenType::t_open_parenthesis});
-				continue;
 			} else if (peek().value() == ')') {
 				consume();
 				tokens.push_back({.type = TokenType::t_close_parenthesis});
-				continue;
 			} else if (peek().value() == '+') {
 				consume();
 				tokens.push_back({.type = TokenType::t_plus});
-				continue;
+			} else if (peek().value() == '*') {
+				consume();
+				tokens.push_back({.type = TokenType::t_star});
+			} else if (peek().value() == '-') {
+				consume();
+				tokens.push_back({.type = TokenType::t_minus});
+			} else if (peek().value() == '/') {
+				consume();
+				tokens.push_back({.type = TokenType::t_slash});
 			} else if (std::iswspace(peek().value())) {
 				consume();
-				continue;
 			} else {
 				std::cerr << "[TOKENIZATION] Messed up!" << std::endl;
 				exit(EXIT_FAILURE);
