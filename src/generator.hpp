@@ -126,6 +126,10 @@ public:
 		end_scope();
 	}
 
+	void generate_else(const NodeStatementElse *opt_else) {
+		generate_scope(opt_else->scope);
+	}
+
 	void generate_statement(const NodeStatement *statement)
 	{
 		struct StatementVisitor
@@ -142,9 +146,8 @@ public:
 
 			void operator()(const NodeStatementVariable *statement_variable) const
 			{
-				auto it = std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable &var)
-															 { return var.name == statement_variable->identifier.value.value(); });
-				if (it != gen.m_variables.cend())
+				if (std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable &var)
+												 { return var.name == statement_variable->identifier.value.value(); }) != gen.m_variables.cend())
 				{
 					std::cerr << "[GENERATOR] Identifier already used: " << statement_variable->identifier.value.value() << std::endl;
 					exit(EXIT_FAILURE);
@@ -162,11 +165,20 @@ public:
 			{
 				gen.generate_expression(statement_if->expression);
 				gen.pop("rax");
-				std::string label = gen.create_label();
+				std::string if_label = gen.create_label();
 				gen.m_output << "    test rax, rax\n";
-				gen.m_output << "    jz " << label << "\n";
+				gen.m_output << "    jz " << if_label << "\n";
 				gen.generate_scope(statement_if->scope);
-				gen.m_output << label << ":\n";
+				std::string end_label;
+				if (statement_if->optional_else.has_value()) {
+					end_label = gen.create_label();
+					gen.m_output << "    jmp " << end_label << "\n";
+				}
+				gen.m_output << if_label << ":\n";
+				if (statement_if->optional_else.has_value()) {
+					gen.generate_else(statement_if->optional_else.value());
+					gen.m_output << end_label << ":\n";
+				}
 			}
 		};
 

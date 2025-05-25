@@ -62,10 +62,15 @@ struct NodeScope
 {
 	std::vector<NodeStatement *> statements;
 };
+struct NodeStatementElse
+{
+	NodeScope *scope;
+};
 struct NodeStatementIf
 {
 	NodeExpression *expression;
 	NodeScope *scope;
+	std::optional<NodeStatementElse *> optional_else;
 };
 struct NodeStatement
 {
@@ -211,6 +216,20 @@ public:
 		return scope;
 	}
 
+	std::optional<NodeStatementElse *> parse_else() {
+		if (try_consume(TokenType::t_else)) {
+			auto opt_else = m_allocator.emplace<NodeStatementElse>();
+			if (const auto scope = parse_scope()) {
+				opt_else->scope = scope.value();
+			} else {
+				std::cerr << "[PARSER] Expected Scope" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			return opt_else;
+		}
+		return {};
+	}
+
 	std::optional<NodeStatement *> parse_statement()
 	{
 		if (peek().value().type == TokenType::t_exit && peek(1).has_value() && peek(1).value().type == TokenType::t_open_parenthesis)
@@ -262,11 +281,8 @@ public:
 				statement->var = scope.value();
 				return statement;
 			}
-			else
-			{
-				std::cerr << "[PARSER] Invalid Scope" << std::endl;
-				exit(EXIT_FAILURE);
-			}
+			std::cerr << "[PARSER] Invalid Scope" << std::endl;
+			exit(EXIT_FAILURE);
 		}
 		else if (auto if_token = try_consume(TokenType::t_if))
 		{
@@ -291,8 +307,8 @@ public:
 				std::cerr << "[PARSER] Invalid Scope" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			auto statement = m_allocator.allocate<NodeStatement>();
-			statement->var = statement_if;
+			statement_if->optional_else = parse_else();
+			auto statement = m_allocator.emplace<NodeStatement>(statement_if);
 			return statement;
 		}
 		return {};

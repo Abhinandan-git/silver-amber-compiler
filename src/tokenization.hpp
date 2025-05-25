@@ -23,7 +23,8 @@ enum class TokenType
 	t_slash,
 	t_open_brace,
 	t_close_brace,
-	t_if
+	t_if,
+	t_else
 };
 
 bool is_binary_operator(TokenType type)
@@ -96,6 +97,10 @@ public:
 					tokens.push_back({.type = TokenType::t_if});
 					buffer.clear();
 				}
+				else if (buffer == "else") {
+					tokens.push_back({.type = TokenType::t_else});
+					buffer.clear();
+				}
 				else
 				{
 					tokens.push_back({.type = TokenType::t_identifier, .value = buffer});
@@ -111,6 +116,36 @@ public:
 				}
 				tokens.push_back({.type = TokenType::t_integer_literal, .value = buffer});
 				buffer.clear();
+			}
+			else if (peek().value() == '-' && peek(1).has_value() && peek(1).value() == '-')
+			{
+				consume();
+				consume();
+				while (peek().has_value() && peek().value() != '\n')
+				{
+					consume();
+				}
+			}
+			else if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '-')
+			{
+				consume();
+				consume();
+				while (peek().has_value())
+				{
+					if (peek().value() == '-' && peek(1).has_value() && peek(1).value() == '/')
+					{
+						break;
+					}
+					consume();
+				}
+				if (peek().has_value())
+				{
+					consume();
+				}
+				if (peek().has_value())
+				{
+					consume();
+				}
 			}
 			else if (peek().value() == ';')
 			{
@@ -177,13 +212,13 @@ public:
 	}
 
 private:
-	[[nodiscard]] std::optional<char> peek(int ahead = 1) const
+	[[nodiscard]] std::optional<char> peek(int offset = 0) const
 	{
-		if (m_current_index + ahead > m_source.size())
+		if (m_current_index + offset >= m_source.size())
 		{
 			return {};
 		}
-		return m_source.at(m_current_index);
+		return m_source.at(m_current_index + offset);
 	}
 
 	char consume()
