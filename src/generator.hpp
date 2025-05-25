@@ -2,6 +2,7 @@
 
 #include "parser.hpp"
 #include <cassert>
+#include <algorithm>
 
 class Generator {
 public:
@@ -9,117 +10,144 @@ public:
 
 	inline void generate_term(const NodeTerm* term) {
 		struct TermVisitor {
-			Generator* gen;
+			Generator& gen;
 			
 			void operator ()(const NodeTermIntegerLiteral* term_integer_literal) {
-				gen->m_output << "    mov rax, " << term_integer_literal->integer_literal.value.value() << "\n";
-				gen->push("rax");
+				gen.m_output << "    mov rax, " << term_integer_literal->integer_literal.value.value() << "\n";
+				gen.push("rax");
 			}
 
 			void operator ()(const NodeTermIdentifier* term_identifier) {
-				if (gen->m_variables.find(term_identifier->identifier.value.value()) == gen->m_variables.end()) {
+				auto it = std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable& var) {
+					return var.name == term_identifier->identifier.value.value();
+				});
+				if (it == gen.m_variables.end()) {
 					std::cerr << "[GENERATOR] Identifier not declared: " << term_identifier->identifier.value.value() << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				const auto var = gen->m_variables.at(term_identifier->identifier.value.value());
 				std::stringstream offset;
-				offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_location - 1) * 8 << "]";
-				gen->push(offset.str());
+				offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_location - 1) * 8 << "]";
+				gen.push(offset.str());
 			}
 
 			void operator ()(const NodeTermParenthesis* term_parenthesis) {
-				gen->generate_expression(term_parenthesis->expression);
+				gen.generate_expression(term_parenthesis->expression);
 			}
 		};
 
-		TermVisitor visitor({.gen = this});
+		TermVisitor visitor({.gen = *this});
 		std::visit(visitor, term->var);
 	}
 
 	void generate_binary_expression(const NodeBinaryExpression* binary_expression) {
 		struct BinaryExpressionVisitor {
-			Generator* gen;
+			Generator& gen;
 
 			void operator ()(const NodeBinaryExpressionAddition *add) const {
-				gen->generate_expression(add->rhs);
-				gen->generate_expression(add->lhs);
-				gen->pop("rax");
-				gen->pop("rbx");
-				gen->m_output << "    add rax, rbx\n";
-				gen->push("rax");
+				gen.generate_expression(add->rhs);
+				gen.generate_expression(add->lhs);
+				gen.pop("rax");
+				gen.pop("rbx");
+				gen.m_output << "    add rax, rbx\n";
+				gen.push("rax");
 			}
 
 			void operator ()(const NodeBinaryExpressionSubtraction *sub) const {
-				gen->generate_expression(sub->rhs);
-				gen->generate_expression(sub->lhs);
-				gen->pop("rax");
-				gen->pop("rbx");
-				gen->m_output << "    sub rax, rbx\n";
-				gen->push("rax");
+				gen.generate_expression(sub->rhs);
+				gen.generate_expression(sub->lhs);
+				gen.pop("rax");
+				gen.pop("rbx");
+				gen.m_output << "    sub rax, rbx\n";
+				gen.push("rax");
 			}
 
 			void operator ()(const NodeBinaryExpressionMultiplication *multi) const {
-				gen->generate_expression(multi->rhs);
-				gen->generate_expression(multi->lhs);
-				gen->pop("rax");
-				gen->pop("rbx");
-				gen->m_output << "    mul rbx\n";
-				gen->push("rax");
+				gen.generate_expression(multi->rhs);
+				gen.generate_expression(multi->lhs);
+				gen.pop("rax");
+				gen.pop("rbx");
+				gen.m_output << "    mul rbx\n";
+				gen.push("rax");
 			}
 
 			void operator ()(const NodeBinaryExpressionDivision *div) const {
-				gen->generate_expression(div->rhs);
-				gen->generate_expression(div->lhs);
-				gen->pop("rax");
-				gen->pop("rbx");
-				gen->m_output << "    div rbx\n";
-				gen->push("rax");
+				gen.generate_expression(div->rhs);
+				gen.generate_expression(div->lhs);
+				gen.pop("rax");
+				gen.pop("rbx");
+				gen.m_output << "    div rbx\n";
+				gen.push("rax");
 			}
 		};
 		
-		BinaryExpressionVisitor visitor({.gen = this});
+		BinaryExpressionVisitor visitor({.gen = *this});
 		std::visit(visitor, binary_expression->var);
 	}
 	
 	inline void generate_expression(const NodeExpression* expression) {
 		struct ExpressionVisitor {
-			Generator* gen;
+			Generator& gen;
 
 			void operator ()(const NodeTerm* term) const {
-				gen->generate_term(term);
+				gen.generate_term(term);
 			}
 
 			void operator ()(const NodeBinaryExpression* binary_expression) const {
-				gen->generate_binary_expression(binary_expression);
+				gen.generate_binary_expression(binary_expression);
 			}
 		};
 
-		ExpressionVisitor visitor{.gen = this};
+		ExpressionVisitor visitor{.gen = *this};
 		std::visit(visitor, expression->var);
+	}
+
+	inline void generate_scope(const NodeScope* scope) {
+		begin_scope();
+		for (const NodeStatement* statement : scope->statements) {
+			generate_statement(statement);
+		}
+		end_scope();
 	}
 
 	inline void generate_statement(const NodeStatement* statement) {
 		struct StatementVisitor {
-			Generator* gen;
+			Generator& gen;
 
 			void operator ()(const NodeStatementExit* statement_exit) const {
-				gen->generate_expression(statement_exit->expression);
-				gen->m_output << "    mov rax, 60\n";
-				gen->pop("rdi");
-				gen->m_output << "    syscall\n";
+				gen.generate_expression(statement_exit->expression);
+				gen.m_output << "    mov rax, 60\n";
+				gen.pop("rdi");
+				gen.m_output << "    syscall\n";
 			}
 
 			void operator ()(const NodeStatementVariable* statement_variable) const {
-				if (gen->m_variables.find(statement_variable->identifier.value.value()) != gen->m_variables.end()) {
+				auto it = std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable& var) {
+					return var.name == statement_variable->identifier.value.value();
+				});
+				if (it != gen.m_variables.cend()) {
 					std::cerr << "[GENERATOR] Identifier already used: " << statement_variable->identifier.value.value() << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				gen->m_variables.insert({statement_variable->identifier.value.value(), Variable {.stack_location = gen->m_stack_size}});
-				gen->generate_expression(statement_variable->expression);
+				gen.m_variables.push_back({.name = statement_variable->identifier.value.value(), .stack_location = gen.m_stack_size});
+				gen.generate_expression(statement_variable->expression);
+			}
+
+			void operator ()(const NodeScope* statement_scope) const {
+				gen.generate_scope(statement_scope);
+			}
+
+			void operator ()(const NodeStatementIf* statement_if) const {
+				gen.generate_expression(statement_if->expression);
+				gen.pop("rax");
+				std::string label = gen.create_label();
+				gen.m_output << "    test rax, rax\n";
+				gen.m_output << "    jz " << label << "\n";
+				gen.generate_scope(statement_if->scope);
+				gen.m_output << label << ":\n";
 			}
 		};
 
-		StatementVisitor visitor{.gen = this};
+		StatementVisitor visitor{.gen = *this};
 		std::visit(visitor, statement->var);
 	}
 
@@ -147,12 +175,35 @@ private:
 		m_stack_size--;
 	}
 
+	inline void begin_scope() {
+		m_scopes.push_back(m_variables.size());
+	}
+
+	inline void end_scope() {
+		size_t pop_count = m_variables.size() - m_scopes.back();
+		m_output << "    add rsp, " << pop_count * 8 << "\n";
+		m_stack_size -= pop_count;
+		for (int _ = 0; _ < pop_count; _++) {
+			m_variables.pop_back();
+		}
+		m_scopes.pop_back();
+	}
+
+	std::string create_label() {
+		std::stringstream ss;
+		ss << "label" << m_label_count++;
+		return ss.str();
+	}
+
 	struct Variable {
+		std::string name;
 		size_t stack_location;
 	};
 
 	const NodeProgram m_program;
 	std::stringstream m_output;
 	size_t m_stack_size = 0;
-	std::unordered_map<std::string, Variable> m_variables{};
+	std::vector<Variable> m_variables{};
+	std::vector<size_t> m_scopes{};
+	int m_label_count = 0;
 };

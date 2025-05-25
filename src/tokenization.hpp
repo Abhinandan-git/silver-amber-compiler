@@ -19,7 +19,10 @@ enum class TokenType {
 	t_plus,
 	t_star,
 	t_minus,
-	t_slash
+	t_slash,
+	t_open_brace,
+	t_close_brace,
+	t_if
 };
 
 bool is_binary_operator(TokenType type) {
@@ -63,7 +66,7 @@ public:
 		while (peek().has_value()) {
 			if (std::isalpha(peek().value())) {
 				buffer.push_back(consume());
-				while (peek().has_value() && std::isalnum(peek().value())) {
+				while (peek().has_value() && (std::isalnum(peek().value()) || peek().value() == '_')) {
 					buffer.push_back(consume());
 				}
 
@@ -72,6 +75,9 @@ public:
 					buffer.clear();
 				} else if (buffer == "variable") {
 					tokens.push_back({.type = TokenType::t_variable});
+					buffer.clear();
+				} else if (buffer == "if") {
+					tokens.push_back({.type = TokenType::t_if});
 					buffer.clear();
 				} else {
 					tokens.push_back({.type = TokenType::t_identifier, .value = buffer});
@@ -108,6 +114,12 @@ public:
 			} else if (peek().value() == '/') {
 				consume();
 				tokens.push_back({.type = TokenType::t_slash});
+			} else if (peek().value() == '{') {
+				consume();
+				tokens.push_back({.type = TokenType::t_open_brace});
+			} else if (peek().value() == '}') {
+				consume();
+				tokens.push_back({.type = TokenType::t_close_brace});
 			} else if (std::iswspace(peek().value())) {
 				consume();
 			} else {

@@ -45,8 +45,16 @@ struct NodeStatementVariable {
 	Token identifier;
 	NodeExpression *expression;
 };
+struct NodeStatement;
+struct NodeScope {
+	std::vector<NodeStatement *> statements;
+};
+struct NodeStatementIf {
+	NodeExpression *expression;
+	NodeScope *scope;
+};
 struct NodeStatement {
-	std::variant<NodeStatementExit *, NodeStatementVariable *> var;
+	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *> var;
 };
 struct NodeProgram {
 	std::vector<NodeStatement *> statements;
@@ -72,10 +80,10 @@ public:
 		} else if (auto open_parenthesis = try_consume(TokenType::t_open_parenthesis)) {
 			auto expression = parse_expression();
 			if (!expression.has_value()) {
-				std::cerr << "Expected expression" << std::endl;
+				std::cerr << "[PARSER] Expected expression" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			try_consume(TokenType::t_close_parenthesis, "Expected `)`");
+			try_consume(TokenType::t_close_parenthesis, "[PARSER] Expected `)`");
 			auto term_parenthesis = m_allocator.allocate<NodeTermParenthesis>();
 			term_parenthesis->expression = expression.value();
 			auto term = m_allocator.allocate<NodeTerm>();
@@ -111,7 +119,7 @@ public:
 			int next_minimum_precedence = precedence.value() + 1;
 			auto expression_rhs = parse_expression(next_minimum_precedence);
 			if (!expression_rhs.has_value()) {
-				std::cerr << "Unable to parse expression" << std::endl;
+				std::cerr << "[PARSER] Unable to parse expression" << std::endl;
 				exit(EXIT_FAILURE);
 			}
 
@@ -150,6 +158,18 @@ public:
 		return expression_lhs;
 	}
 
+	inline std::optional<NodeScope *> parse_scope() {
+		if (!try_consume(TokenType::t_open_brace).has_value()) {
+			return {};
+		}
+		auto scope = m_allocator.allocate<NodeScope>();
+		while (auto statement = parse_statement()) {
+			scope->statements.push_back(statement.value());
+		}
+		try_consume(TokenType::t_close_brace, "[PARSER] Expected `}`");
+		return scope;
+	}
+
 	inline std::optional<NodeStatement *> parse_statement() {
 		if (peek().value().type == TokenType::t_exit && peek(1).has_value() && peek(1).value().type == TokenType::t_open_parenthesis) {
 			consume();
@@ -182,6 +202,34 @@ public:
 			auto node_statement = m_allocator.allocate<NodeStatement>();
 			node_statement->var = node_statement_variable;
 			return node_statement;
+		} else if (peek().has_value() && peek().value().type == TokenType::t_open_brace) {
+			if (auto scope = parse_scope()) {
+				auto statement = m_allocator.allocate<NodeStatement>();
+				statement->var = scope.value();
+				return statement;
+			} else {
+				std::cerr << "[PARSER] Invalid Scope" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		} else if (auto if_token = try_consume(TokenType::t_if)) {
+			try_consume(TokenType::t_open_parenthesis, "Expected `(`");
+			auto statement_if = m_allocator.allocate<NodeStatementIf>();
+			if (auto expression = parse_expression()) {
+				statement_if->expression = expression.value();
+			} else {
+				std::cerr << "[PARSER] Invalid Expression" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			try_consume(TokenType::t_close_parenthesis, "Expected `)`");
+			if (auto scope = parse_scope()) {
+				statement_if->scope = scope.value();
+			} else {
+				std::cerr << "[PARSER] Invalid Scope" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			auto statement = m_allocator.allocate<NodeStatement>();
+			statement->var = statement_if;
+			return statement;
 		} else {
 			return {};
 		}
