@@ -1,0 +1,6 @@
+variable variable_one = (9 - 2 * 3) / 2;
+variable check = 1;
+{
+	variable local = 50;
+}
+exit(36);

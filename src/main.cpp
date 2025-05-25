@@ -5,7 +5,6 @@
 #include <optional>
 #include <vector>
 #include <variant>
-#include <unordered_map>
 
 #include "generator.hpp"
 
@@ -51,6 +50,9 @@ int main(int argc, char const *argv[]) {
 		std::fstream file("out.asm", std::ios::out); // Open file for writing
 		file << generator.generate_program();        // Generate intermediate code
 	}
+
+	system("nasm -felf64 out.asm");
+	system("ld -o out out.o");
 
 	return EXIT_SUCCESS; // Macro
 }
