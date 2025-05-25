@@ -1,11 +1,23 @@
-FROM ubuntu:latest
+FROM ubuntu:25.10
 
-RUN apt-get update && apt-get install -y build-essential && apt install -y nasm
+# Install necessary build tools and a timeout utility
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        build-essential \
+        nasm \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /
+# Create a non-root user for security
+RUN useradd -m runner
+USER runner
+WORKDIR /home/runner
 
-COPY src/main.cpp src/arena.hpp src/generator.hpp src/parser.hpp src/tokenization ./
+# Copy the source code
+COPY --chown=runner:runner src ./src
+COPY source_code.ffo ./
 
-RUN g++ ./main.cpp -o sacompiler
+# Optional: precompile the compiler if it's part of your system
+RUN g++ ./src/main.cpp -o ./program
 
-CMD [ "./sacompiler", "./source_code.ffo" ]
+# Default command: compile and run submitted code with timeout
+CMD ["timeout 5s", "bash -c", "./program ./source_code.ffo"]

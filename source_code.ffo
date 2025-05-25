@@ -1,6 +1,6 @@
 variable variable_one = (9 - 2 * 3) / 2;
 variable check = 1;
-{
+if (variable_one) {
 	variable local = 50;
 }
-exit(36);
+exit(variable_one);
