@@ -203,7 +203,7 @@ public:
 			}
 			else
 			{
-				std::cerr << "[TOKENIZATION] Messed up!" << std::endl;
+				std::cerr << "[TOKENIZATION] Invalid token" << std::endl;
 				exit(EXIT_FAILURE);
 			}
 		}
