@@ -72,6 +72,11 @@ struct NodeStatementIf
 	NodeScope *scope;
 	std::optional<NodeStatementElse *> optional_else;
 };
+struct NodeStatementAssignment
+{
+	Token identifier;
+	NodeExpression *expression;
+};
 struct NodeStatement
 {
 	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *> var;
@@ -216,12 +221,17 @@ public:
 		return scope;
 	}
 
-	std::optional<NodeStatementElse *> parse_else() {
-		if (try_consume(TokenType::t_else)) {
+	std::optional<NodeStatementElse *> parse_else()
+	{
+		if (try_consume(TokenType::t_else))
+		{
 			auto opt_else = m_allocator.emplace<NodeStatementElse>();
-			if (const auto scope = parse_scope()) {
+			if (const auto scope = parse_scope())
+			{
 				opt_else->scope = scope.value();
-			} else {
+			}
+			else
+			{
 				std::cerr << "[PARSER] Expected Scope" << std::endl;
 				exit(EXIT_FAILURE);
 			}
@@ -272,6 +282,24 @@ public:
 			auto node_statement = m_allocator.allocate<NodeStatement>();
 			node_statement->var = node_statement_variable;
 			return node_statement;
+		}
+		else if (peek().has_value() && peek().value().type == TokenType::t_identifier && peek(1).has_value() && peek(1).value().type == TokenType::t_equal)
+		{
+			auto assignment = m_allocator.allocate<NodeStatementAssignment>();
+			auto identifier = consume();
+			consume();
+			if (auto expression = parse_expression())
+			{
+				assignment->expression = expression.value();
+			}
+			else
+			{
+				std::cerr << "[PARSER] Expected expression" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			try_consume(TokenType::t_semi_colon, "Expected `;`");
+			auto statement = m_allocator.emplace<NodeStatement>(assignment);
+			return statement;
 		}
 		else if (peek().has_value() && peek().value().type == TokenType::t_open_brace)
 		{
