@@ -83,9 +83,13 @@ struct NodeStatementFunction
 	Token identifier;
 	NodeScope *scope;
 };
+struct NodeStatementCall
+{
+	Token identifier;
+};
 struct NodeStatement
 {
-	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *, NodeStatementAssignment *, NodeStatementFunction *> var;
+	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *, NodeStatementAssignment *, NodeStatementFunction *, NodeStatementCall *> var;
 };
 struct NodeProgram
 {
@@ -323,6 +327,17 @@ public:
 				exit(EXIT_FAILURE);
 			}
 			auto statement = m_allocator.emplace<NodeStatement>(statement_function_declaration);
+			return statement;
+		}
+		if (peek().has_value() && peek().value().type == TokenType::t_call && peek(1).has_value() && peek(1).value().type == TokenType::t_identifier)
+		{
+			consume();
+			const auto statement_function_call = m_allocator.allocate<NodeStatementCall>();
+			statement_function_call->identifier = consume();
+
+			try_consume(TokenType::t_semi_colon, "Expected `;`");
+
+			auto statement = m_allocator.emplace<NodeStatement>(statement_function_call);
 			return statement;
 		}
 		if (peek().has_value() && peek().value().type == TokenType::t_open_brace)

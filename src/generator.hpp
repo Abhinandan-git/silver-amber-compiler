@@ -211,6 +211,10 @@ public:
 				gen.m_output << "    ret\n";
 				gen.m_output << function_end_label << ":\n";
 			}
+
+			void operator()(const NodeStatementCall *statement_call) const {
+				gen.m_output << "    call " << gen.m_function_labels[statement_call->identifier.value.value()] << "\n";
+			}
 		};
 
 		StatementVisitor visitor{.gen = *this};

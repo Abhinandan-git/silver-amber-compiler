@@ -1,26 +1,19 @@
 -- First comment
 /-
-	Second comment
-	exit(0) -- will give error
+Multi-line comment
+variable - variable declaration
+exit - exits the program with a number [0 - 255]
+if...else - conditionals
 -/
+
 variable x = 1;
-variable y = 1;
-variable z = 0;
-if (x) {
-	if (y) {
-		z = 1;
-	} else {
-		z = 2;
+
+function function_call {
+	if (10 - x) {
+		exit(69);
 	}
-} else {
-	if (x) {
-		z = 3;
-	}
+	x = x + 1;
+	call function_call;
 }
-function abc(b, c, a) {
-	variable b = 9;
-	exit(8);
-}
-x = 9;
-abc(1, 1, 1)
-exit(x);
+
+call function_call;

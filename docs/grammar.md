@@ -8,6 +8,7 @@ $$
         \text{ident} = \text{[Expr]}; \\
         \text{if}([\text{Expr}])[\text{Scope}]\text{[IfPred]} \\
         \text{function}\space\text{ident}[\text{Scope}] \\
+        \text{call}\space\text{ident}; \\
         [\text{Scope}]
     \end{cases} \\
     \text{[Scope]} &\to \{[\text{Stmt}]^*\} \\
