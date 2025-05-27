@@ -156,6 +156,20 @@ public:
 				gen.generate_expression(statement_variable->expression);
 			}
 
+			void operator()(const NodeStatementAssignment *statement_assignment) const
+			{
+				auto it = std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable &var)
+												 { return var.name == statement_assignment->identifier.value.value(); });
+				if (it == gen.m_variables.cend())
+				{
+					std::cerr << "[GENERATOR] Identifier not declared: " << statement_assignment->identifier.value.value() << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				gen.generate_expression(statement_assignment->expression);
+				gen.pop("rax");
+				gen.m_output << "    mov [rsp + " << (gen.m_stack_size - (*it).stack_location - 1) * 8 << "], rax\n";
+			}
+
 			void operator()(const NodeScope *statement_scope) const
 			{
 				gen.generate_scope(statement_scope);

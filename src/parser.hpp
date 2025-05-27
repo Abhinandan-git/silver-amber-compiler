@@ -57,6 +57,11 @@ struct NodeStatementVariable
 	Token identifier;
 	NodeExpression *expression;
 };
+struct NodeStatementAssignment
+{
+	Token identifier;
+	NodeExpression *expression;
+};
 struct NodeStatement;
 struct NodeScope
 {
@@ -74,7 +79,7 @@ struct NodeStatementIf
 };
 struct NodeStatement
 {
-	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *> var;
+	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *, NodeStatementAssignment *> var;
 };
 struct NodeProgram
 {
@@ -253,7 +258,7 @@ public:
 			node_statement->var = node_statement_exit;
 			return node_statement;
 		}
-		else if (peek().has_value() && peek().value().type == TokenType::t_variable && peek(1).has_value() && peek(1).value().type == TokenType::t_identifier && peek(2).has_value() && peek(2).value().type == TokenType::t_equal)
+		if (peek().has_value() && peek().value().type == TokenType::t_variable && peek(1).has_value() && peek(1).value().type == TokenType::t_identifier && peek(2).has_value() && peek(2).value().type == TokenType::t_equal)
 		{
 			consume();
 			auto node_statement_variable = m_allocator.allocate<NodeStatementVariable>();
@@ -273,7 +278,25 @@ public:
 			node_statement->var = node_statement_variable;
 			return node_statement;
 		}
-		else if (peek().has_value() && peek().value().type == TokenType::t_open_brace)
+		if (peek().has_value() && peek().value().type == TokenType::t_identifier && peek(1).has_value() && peek(1).value().type == TokenType::t_equal)
+		{
+			const auto statement_assignment = m_allocator.allocate<NodeStatementAssignment>();
+			statement_assignment->identifier = consume();
+			consume();
+			if (auto expression = parse_expression())
+			{
+				statement_assignment->expression = expression.value();
+			}
+			else
+			{
+				std::cerr << "[PARSER] Invalid expression" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			try_consume(TokenType::t_semi_colon, "[PARSER] Expected `;`");
+			auto node_statement = m_allocator.emplace<NodeStatement>(statement_assignment);
+			return node_statement;
+		}
+		if (peek().has_value() && peek().value().type == TokenType::t_open_brace)
 		{
 			if (auto scope = parse_scope())
 			{
@@ -284,7 +307,7 @@ public:
 			std::cerr << "[PARSER] Invalid Scope" << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		else if (auto if_token = try_consume(TokenType::t_if))
+		if (auto if_token = try_consume(TokenType::t_if))
 		{
 			try_consume(TokenType::t_open_parenthesis, "Expected `(`");
 			auto statement_if = m_allocator.allocate<NodeStatementIf>();
