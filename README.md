@@ -1,63 +1,115 @@
 # Silver Amber Compiler
 
-Silver Amber Compiler is a custom compiler for the FFO programming language, implemented entirely in C. This project aims to create a fully functional compiler, including lexical analysis (lexer), parsing CLR(1) parser, and code generation, without using external tools like Flex or Bison.
+**Silver Amber Compiler** is a custom compiler written in modern C++ for a new experimental programming language called **FFO**. It is a ground-up implementation featuring a handcrafted lexer, and a backend for generating and executing native machine code—all without relying on traditional compiler tools like Flex or Bison.
 
-## Features
-- **Lexical Analysis**: Converts source code into tokens using a custom lexer.
-- **Parsing**: Implements an CLR(1) parser for syntax analysis.
-- **Compilation**: Translates FFO code into executable machine code.
-- **Custom Language Design**: FFO is a new programming language being developed for this project.
-- **Implemented in C**: No external dependencies or compiler generators.
+This repository is the core of a broader DevOps-based online compiler project.
 
-## Project Structure
+---
+
+## ✨ Key Features
+
+* 🔤 **Lexical Analysis** – Custom-built lexer to tokenize FFO source code.
+* 🧠 **Syntax Analysis** – Parsing tokens into a syntactic structure.
+* 🌳 **AST Support** – Parses tokens into an Abstract Syntax Tree for easier processing.
+* ⚙️ **Code Generation** – Converts AST into machine-executable code.
+* 🚫 **No Dependencies** – Pure C++ implementation without Flex, Bison, or external libs.
+* 🧪 **Testable Backend** – Easily embeddable in DevOps workflows for automated execution.
+
+---
+
+## 📁 Project Structure
+
 ```
 silver-amber-compiler/
-├── src/               # Source files
-│   ├── lexer.c        # Lexer implementation
-│   ├── parser.c       # Parser implementation
-│   ├── main.c         # Compiler entry point
-├── include/           # Header files
-│   ├── lexer.h
-│   ├── parser.h
-├── build/             # Compiled objects and binary output
-├── README.md          # Project documentation
+├── c-archive/               # Old compiler written in C
+├── src/
+│   ├── main.cpp             # Compiler entry point
+│   ├── tokenization.hpp     # Lexer implementation
+│   ├── parser.hpp           # CLR(1) parser
+│   ├── generation.hpp       # Code generation logic
+│   ├── arena.hpp            # Memory arena for efficient allocation
+├── docs/
+│   └── grammar.md           # FFO language grammar and syntax rules
+├── build/                   # Build output directory
+├── LICENSE
+└── README.md
 ```
 
-## Installation & Building
-### **Prerequisites**
-- GCC (or any C compiler)
+---
 
-### **Build Instructions**
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/abhinandan-git/silver-amber-compiler.git
-   cd silver-amber-compiler
-   ```
-2. Compile the project:
-   ```sh
-   make
-   ```
-3. Run the compiler:
-   ```sh
-   ./build/ffo-compiler <source_file.ffo>
-   ```
+## 🛠️ Installation & Build
 
-## Usage
-To compile an `.ffo` source file:
-```sh
-./build/ffo-compiler example.ffo
+### Prerequisites
+
+* GCC/G++ (C++20 or later)
+* Linux (tested on Ubuntu 24.04.2)
+* NASM (for assembly)
+* ld linker (converting the output into executable)
+* CMake (optional, if you want to use a build system)
+
+### Build Instructions
+
+```bash
+git clone https://github.com/abhinandan-git/silver-amber-compiler.git
+cd silver-amber-compiler
+
+# Basic build (manual)
+g++ -std=c++20 -O2 -o build/sacompiler src/main.cpp
+
+# OR use CMake (if available)
+# mkdir build && cd build
+# cmake ..
+# make
 ```
 
-## Development Roadmap
-- ✅ Implement Lexer (Tokenisation)
-- ✅ Implement LR(1) / LALR(1) Parser
-- ✅ Implement Abstract Syntax Tree (AST)
-- ⏳ Implement Semantic Analysis
-- ⏳ Code Generation
-- ⏳ Optimization & Testing
+---
 
-## Contributing
-Contributions are welcome! Feel free to open issues or submit pull requests.
+## 🚀 Usage
 
-## License
-This project is licensed under the GNU General Public License. See `LICENSE` for details.
+Compile a source file written in FFO:
+
+```bash
+./build/sacompiler path/to/source.ffo
+```
+
+Output will be printed to stdout or executed, depending on the source and generation logic.
+
+---
+
+## 📌 Development Roadmap
+
+| Feature                     | Status         |
+| --------------------------- | -------------- |
+| Custom Lexer                | ✅ Completed   |
+| CLR(1) Parser               | ✅ Completed   |
+| Abstract Syntax Tree        | ✅ Completed   |
+| Code Generation             | ✅ Completed   |
+| CI/CD Integration           | ⏳ In Progress |
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions and ideas! Please follow these steps:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature-xyz`)
+3. Commit your changes
+4. Push to your fork
+5. Open a Pull Request
+
+You can also open Issues to suggest features, report bugs, or request enhancements.
+
+---
+
+## 🪪 License
+
+This project is licensed under the **GNU General Public License v3.0**.
+See the [`LICENSE`](./LICENSE) file for details.
+
+---
+
+## 📚 Additional Notes
+
+* This compiler is a component of a larger DevOps-based online compiler system.
+* All execution is sandboxed using Docker containers in production deployments.
