@@ -14,7 +14,7 @@ if (x) {
 	}
 } else {
 	if (x) {
-		exit(3);
+		z = 3;
 	}
 }
 exit(z);
