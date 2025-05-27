@@ -1,7 +1,7 @@
 -- First comment
 /-
 	Second comment
-	exit(0);
+	exit(0) -- will give error
 -/
 variable x = 1;
 variable y = 1;
