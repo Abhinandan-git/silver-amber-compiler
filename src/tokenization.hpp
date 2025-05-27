@@ -24,7 +24,8 @@ enum class TokenType
 	t_open_brace,
 	t_close_brace,
 	t_if,
-	t_else
+	t_else,
+	t_function
 };
 
 bool is_binary_operator(TokenType type)
@@ -97,8 +98,14 @@ public:
 					tokens.push_back({.type = TokenType::t_if});
 					buffer.clear();
 				}
-				else if (buffer == "else") {
+				else if (buffer == "else")
+				{
 					tokens.push_back({.type = TokenType::t_else});
+					buffer.clear();
+				}
+				else if (buffer == "function")
+				{
+					tokens.push_back({.type = TokenType::t_function});
 					buffer.clear();
 				}
 				else

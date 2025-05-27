@@ -6,7 +6,8 @@ $$
         \text{exit}([\text{Expr}]); \\
         \text{variable}\space\text{ident} = [\text{Expr}]; \\
         \text{ident} = \text{[Expr]}; \\
-        \text{if} ([\text{Expr}])[\text{Scope}]\text{[IfPred]}\\
+        \text{if}([\text{Expr}])[\text{Scope}]\text{[IfPred]} \\
+        \text{function}\space\text{ident}[\text{Scope}] \\
         [\text{Scope}]
     \end{cases} \\
     \text{[Scope]} &\to \{[\text{Stmt}]^*\} \\

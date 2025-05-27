@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <unordered_map>
 #include "parser.hpp"
 
 class Generator
@@ -146,8 +147,8 @@ public:
 
 			void operator()(const NodeStatementVariable *statement_variable) const
 			{
-				if (std::find_if(gen.m_variables.cbegin(), gen.m_variables.cend(), [&](const Variable &var)
-												 { return var.name == statement_variable->identifier.value.value(); }) != gen.m_variables.cend())
+				if (std::find_if(gen.m_variables.crbegin(), gen.m_variables.crend(), [&](const Variable &var)
+												 { return var.name == statement_variable->identifier.value.value(); }) != gen.m_variables.crend())
 				{
 					std::cerr << "[GENERATOR] Identifier already used: " << statement_variable->identifier.value.value() << std::endl;
 					exit(EXIT_FAILURE);
@@ -193,6 +194,22 @@ public:
 					gen.generate_else(statement_if->optional_else.value());
 					gen.m_output << end_label << ":\n";
 				}
+			}
+
+			void operator()(const NodeStatementFunction *statement_function) const {
+				std::string function_end_label = gen.create_label();
+				gen.m_output << "    jmp " << function_end_label << "\n";
+
+				std::string function_label = gen.create_function_label();
+				gen.m_function_labels[statement_function->identifier.value.value()] = function_label;
+
+				gen.m_variables.push_back({.name = statement_function->identifier.value.value(), .stack_location = gen.m_stack_size});
+
+				gen.m_output << function_label << ":\n";
+				gen.generate_scope(statement_function->scope);
+				
+				gen.m_output << "    ret\n";
+				gen.m_output << function_end_label << ":\n";
 			}
 		};
 
@@ -252,6 +269,13 @@ private:
 		return ss.str();
 	}
 
+	std::string create_function_label()
+	{
+		std::stringstream ss;
+		ss << "flabel" << m_function_label_count++;
+		return ss.str();
+	}
+
 	struct Variable
 	{
 		std::string name;
@@ -264,4 +288,6 @@ private:
 	std::vector<Variable> m_variables{};
 	std::vector<size_t> m_scopes{};
 	int m_label_count = 0;
+	int m_function_label_count = 0;
+	std::unordered_map<std::string, std::string> m_function_labels{};
 };

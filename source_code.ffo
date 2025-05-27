@@ -17,4 +17,10 @@ if (x) {
 		z = 3;
 	}
 }
-exit(z);
+function abc(b, c, a) {
+	variable b = 9;
+	exit(8);
+}
+x = 9;
+abc(1, 1, 1)
+exit(x);

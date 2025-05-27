@@ -2,6 +2,7 @@
 
 #include "arena.hpp"
 #include "tokenization.hpp"
+#include <unordered_set>
 
 struct NodeTermIntegerLiteral
 {
@@ -77,9 +78,14 @@ struct NodeStatementIf
 	NodeScope *scope;
 	std::optional<NodeStatementElse *> optional_else;
 };
+struct NodeStatementFunction
+{
+	Token identifier;
+	NodeScope *scope;
+};
 struct NodeStatement
 {
-	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *, NodeStatementAssignment *> var;
+	std::variant<NodeStatementExit *, NodeStatementVariable *, NodeScope *, NodeStatementIf *, NodeStatementAssignment *, NodeStatementFunction *> var;
 };
 struct NodeProgram
 {
@@ -221,12 +227,17 @@ public:
 		return scope;
 	}
 
-	std::optional<NodeStatementElse *> parse_else() {
-		if (try_consume(TokenType::t_else)) {
-			auto opt_else = m_allocator.emplace<NodeStatementElse>();
-			if (const auto scope = parse_scope()) {
+	std::optional<NodeStatementElse *> parse_else()
+	{
+		if (try_consume(TokenType::t_else))
+		{
+			auto opt_else = m_allocator.allocate<NodeStatementElse>();
+			if (const auto scope = parse_scope())
+			{
 				opt_else->scope = scope.value();
-			} else {
+			}
+			else
+			{
 				std::cerr << "[PARSER] Expected Scope" << std::endl;
 				exit(EXIT_FAILURE);
 			}
@@ -295,6 +306,24 @@ public:
 			try_consume(TokenType::t_semi_colon, "[PARSER] Expected `;`");
 			auto node_statement = m_allocator.emplace<NodeStatement>(statement_assignment);
 			return node_statement;
+		}
+		if (peek().has_value() && peek().value().type == TokenType::t_function && peek(1).has_value() && peek(1).value().type == TokenType::t_identifier)
+		{
+			consume();
+			const auto statement_function_declaration = m_allocator.allocate<NodeStatementFunction>();
+			statement_function_declaration->identifier = consume();
+
+			if (auto scope = parse_scope())
+			{
+				statement_function_declaration->scope = scope.value();
+			}
+			else
+			{
+				std::cerr << "Invalid Scope" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			auto statement = m_allocator.emplace<NodeStatement>(statement_function_declaration);
+			return statement;
 		}
 		if (peek().has_value() && peek().value().type == TokenType::t_open_brace)
 		{
