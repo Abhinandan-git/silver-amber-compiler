@@ -45,7 +45,7 @@ silver-amber-compiler/
 * Linux (tested on Ubuntu 24.04.2)
 * NASM (for assembly)
 * ld linker (converting the output into executable)
-* CMake (optional, if you want to use a build system)
+* CMake
 
 ### Build Instructions
 
@@ -56,7 +56,7 @@ cd silver-amber-compiler
 # Basic build (manual)
 g++ -std=c++20 -O2 -o build/sacompiler src/main.cpp
 
-# OR use CMake (if available)
+# OR use CMake
 # mkdir build && cd build
 # cmake ..
 # make
@@ -84,7 +84,7 @@ Output will be printed to stdout or executed, depending on the source and genera
 | CLR(1) Parser               | ✅ Completed   |
 | Abstract Syntax Tree        | ✅ Completed   |
 | Code Generation             | ✅ Completed   |
-| CI/CD Integration           | ⏳ In Progress |
+| CI/CD Integration           | ✅ Completed   |
 
 ---
 

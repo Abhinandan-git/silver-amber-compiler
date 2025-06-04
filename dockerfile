@@ -1,23 +1,20 @@
-FROM ubuntu:25.10
+FROM debian:bookworm-slim
 
-# Install necessary build tools and a timeout utility
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        build-essential \
-        nasm \
-        && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install minimal runtime dependencies (if needed)
+RUN apt-get update && apt-get install -y \
+    coreutils \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user for security
+# Create non-root user
 RUN useradd -m runner
 USER runner
 WORKDIR /home/runner
 
-# Copy the source code
-COPY --chown=runner:runner src ./src
-COPY source_code.ffo ./
+# Copy prebuilt compiler binary
+COPY --chown=runner:runner build/sacompiler /usr/local/bin/sacompiler
 
-# Optional: precompile the compiler if it's part of your system
-RUN g++ ./src/main.cpp -o ./program
+# Add wrapper script
+COPY --chown=runner:runner run.sh /usr/local/bin/run-code
+RUN chmod +x /usr/local/bin/run-code
 
-# Default command: compile and run submitted code with timeout
-CMD ["timeout 5s", "bash -c", "./program ./source_code.ffo"]
+ENTRYPOINT ["/usr/local/bin/run-code"]
